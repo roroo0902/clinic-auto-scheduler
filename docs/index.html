@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="診所排班資料範本：2026 年 11 月早午晚三班、員工設定與每日人力需求。">
+<title>診所排班｜資料準備</title>
+<style>
+:root{color-scheme:light;--ink:#183b38;--muted:#607570;--green:#186b59;--line:#dce5df;--paper:#fafbf7}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.7 system-ui,"Microsoft JhengHei",sans-serif}header{border-bottom:1px solid var(--line);background:white}nav,main,footer{max-width:1100px;margin:auto;padding:22px 28px}nav{display:flex;justify-content:space-between;align-items:center;gap:20px}nav strong{font-size:19px}a{color:var(--green);text-underline-offset:4px}h1{font-size:clamp(32px,5vw,52px);line-height:1.25;margin:14px 0}h2{font-size:23px;margin:0 0 12px}.intro{padding:38px 0 24px}.eyebrow{letter-spacing:2px;font-size:13px;color:var(--green);font-weight:700}.intro p{max-width:750px;color:var(--muted)}.notice{border-left:4px solid #b78535;background:#fff5df;padding:14px 20px;margin-bottom:28px;color:#6a5229}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 36px}.card{background:white;border:1px solid var(--line);padding:22px;border-radius:12px}.card small{display:block;color:var(--muted)}.card strong{display:block;font-size:26px;margin:7px 0}.card p{color:var(--muted);font-size:14px}.card a{font-weight:650}.section-title{display:flex;justify-content:space-between;align-items:center;gap:16px}.badge{font-size:13px;padding:4px 12px;border-radius:20px;background:#e5eee8;white-space:nowrap}.table-wrap{overflow:auto;background:white;border:1px solid var(--line);border-radius:12px}table{border-collapse:collapse;width:100%;min-width:640px}th,td{text-align:left;padding:13px 18px;border-bottom:1px solid var(--line)}thead{background:#edf3ee}th span{display:block;font-weight:400;font-size:12px;color:var(--muted)}td:not(:first-child){color:#7c8984}.weekend td:first-child{background:#f2f5ee}.note{font-size:14px;color:var(--muted)}footer{border-top:1px solid var(--line);color:var(--muted);font-size:13px;margin-top:40px}a:focus-visible{outline:3px solid #b78535;outline-offset:5px}@media(max-width:700px){nav,main,footer{padding:18px}.grid{grid-template-columns:1fr}.intro{padding-top:25px}.section-title{align-items:start}.card strong{font-size:22px}}
+</style>
+</head>
+<body>
+<header><nav><strong>診所排班</strong><a href="https://github.com/roroo0902/clinic-auto-scheduler">原始碼與說明 ↗</a></nav></header>
+<main>
+<section class="intro"><div class="eyebrow">排班資料準備 · 2026 / 11</div><h1>先整理條件，<br>再安排每一班。</h1><p>早、午、晚三班的資料範本已備妥。從員工設定、每日需求與強制班別開始，逐步補齊排班所需資料。</p></section>
+<div class="notice"><strong>目前是公開範本預覽。</strong>尚未提供登入、自動排班或雲端儲存；下方「待排」不代表缺額或休診。本頁不收集員工資料。</div>
+<section class="grid" aria-label="資料範本">
+<article class="card"><small>01 / 員工與排班條件</small><strong>10 位預留名額</strong><p>填寫工時目標、休假、資格、偏好及強制班別。員工代碼僅為預留位置。</p><a href="https://github.com/roroo0902/clinic-auto-scheduler/blob/main/templates/資料填寫表.md">開啟資料填寫表 →</a></article>
+<article class="card"><small>02 / 每日早午晚班</small><strong>30 天 · 90 班</strong><p>每日期各班需求與人數上限獨立設定，空白代表待確認，不會視為零人。</p><a href="https://github.com/roroo0902/clinic-auto-scheduler/blob/main/templates/Schedule_W1初版_2026-11.md">開啟完整班表空表 →</a></article>
+<article class="card"><small>03 / 資料格式與規範</small><strong>填寫使用說明</strong><p>確認強制班別、跨月查核與資料格式。真實員工資料請保留在私人位置。</p><a href="https://github.com/roroo0902/clinic-auto-scheduler/blob/main/docs/data-guide.md">閱讀填寫指南 →</a></article>
+</section>
+<section><div class="section-title"><h2>2026 年 11 月班表</h2><span class="badge">空白範本 · 尚未公布</span></div><p class="note">同一員工同日可排多班，出勤僅計一天。週末標色僅供辨識，不代表休診。</p><div class="table-wrap"><table><thead><tr><th scope="col">日期</th><th scope="col">A 早班<span>08:00–12:00</span></th><th scope="col">B 午班<span>14:30–18:30</span></th><th scope="col">C 晚班<span>18:30–21:30</span></th></tr></thead><tbody id="schedule"></tbody></table></div><noscript><p>請啟用 JavaScript 查看月表，或使用上方完整班表空表連結。</p></noscript></section>
+</main><footer>資料範本版本 0.1.0 · Asia/Taipei<br>正式排班系統仍待開發、完整驗證及管理者核准。本頁沒有連接正式班表。</footer>
+<script>
+const days=['日','一','二','三','四','五','六'];
+const tbody=document.getElementById('schedule');
+for(let day=1;day<=30;day++){
+ const week=new Date(Date.UTC(2026,10,day)).getUTCDay();
+ const tr=document.createElement('tr');if(week===0||week===6)tr.className='weekend';
+ for(const value of [`11/${String(day).padStart(2,'0')}（${days[week]}）`,'待排','待排','待排']){const td=document.createElement('td');td.textContent=value;tr.appendChild(td);}
+ tbody.appendChild(tr);
+}
+</script>
+</body></html>
