@@ -1,0 +1,2044 @@
+{
+  "schemaVersion": "0.1.0",
+  "specificationVersion": "2026-10-25",
+  "artifactType": "INPUT_TEMPLATE",
+  "month": "2026-11",
+  "timezone": "Asia/Taipei",
+  "productionReady": false,
+  "placeholderEmployeeIds": true,
+  "missingDataPolicy": "NULL_IS_UNKNOWN_NOT_ZERO",
+  "crossMonthStatus": "MISSING_NOT_ASSUMED_REST",
+  "confirmedRuleRange": [
+    1,
+    46
+  ],
+  "pendingRuleIds": [
+    47
+  ],
+  "tables": {
+    "SystemConfig": [
+      {
+        "key": "TIMEZONE",
+        "value": "Asia/Taipei",
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "TEST_MONTH",
+        "value": "2026-11",
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "SEARCH_BUDGET_SECONDS",
+        "value": 900,
+        "type": "integer",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "OPTIMIZATION_ORDER",
+        "value": [
+          "HARD_CONSTRAINTS",
+          "STAFF_SHORTAGE",
+          "MONTHLY_HOURS_ERROR",
+          "QUALITY_PREFERENCES",
+          "TIE_BREAK"
+        ],
+        "type": "array",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "RELEASE_REQUIRES_APPROVAL",
+        "value": true,
+        "type": "boolean",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "ALLOWED_ROLES",
+        "value": [
+          "ADMIN"
+        ],
+        "type": "array",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "AUTO_COMPARE_ALGORITHMS",
+        "value": false,
+        "type": "boolean",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "STOP_ON_PROVEN_OPTIMAL",
+        "value": true,
+        "type": "boolean",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "STOP_ON_APPROVED_QUALITY_THRESHOLD",
+        "value": true,
+        "type": "boolean",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "QUALITY_THRESHOLD",
+        "value": null,
+        "type": "object",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "RETRY_LIMIT",
+        "value": null,
+        "type": "integer",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "PROGRESS_POLL_INTERVAL_SECONDS",
+        "value": null,
+        "type": "integer",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "BACKUP_FREQUENCY",
+        "value": "DAILY",
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "BACKUP_TIME",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "DUPLICATE_SAME_MONTH_TASK_PRODUCT_POLICY",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING_RULE_47"
+      },
+      {
+        "key": "NOTIFICATION_MODE",
+        "value": "MANAGER_MANUAL_SEND",
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "CONFIRMED"
+      },
+      {
+        "key": "ADMIN_EMAILS",
+        "value": null,
+        "type": "array",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING_PRIVATE_CONFIG"
+      },
+      {
+        "key": "GOOGLE_SPREADSHEET_ID",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "GAS_SCRIPT_ID",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "GAS_DEPLOYMENT_ID",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING"
+      },
+      {
+        "key": "BACKUP_FOLDER_ID",
+        "value": null,
+        "type": "string",
+        "scope": "GLOBAL",
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1,
+        "status": "PENDING_PRIVATE_CONFIG"
+      }
+    ],
+    "Employees": [
+      {
+        "employeeId": "EMP001",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP002",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP003",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP004",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP005",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP006",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP007",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP008",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP009",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      },
+      {
+        "employeeId": "EMP010",
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": 1
+      }
+    ],
+    "ShiftDefinitions": [
+      {
+        "shiftId": "A",
+        "shiftName": "早班",
+        "startTime": "08:00",
+        "endTime": "12:00",
+        "endDayOffset": 0,
+        "unpaidBreakMinutes": null,
+        "breakRules": null,
+        "hoursCalculationPolicy": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1
+      },
+      {
+        "shiftId": "B",
+        "shiftName": "午班",
+        "startTime": "14:30",
+        "endTime": "18:30",
+        "endDayOffset": 0,
+        "unpaidBreakMinutes": null,
+        "breakRules": null,
+        "hoursCalculationPolicy": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1
+      },
+      {
+        "shiftId": "C",
+        "shiftName": "晚班",
+        "startTime": "18:30",
+        "endTime": "21:30",
+        "endDayOffset": 0,
+        "unpaidBreakMinutes": null,
+        "breakRules": null,
+        "hoursCalculationPolicy": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": 1
+      }
+    ],
+    "CalendarDates": [
+      {
+        "date": "2026-11-01",
+        "weekday": 7,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-02",
+        "weekday": 1,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-03",
+        "weekday": 2,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-04",
+        "weekday": 3,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-05",
+        "weekday": 4,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-06",
+        "weekday": 5,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-07",
+        "weekday": 6,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-08",
+        "weekday": 7,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-09",
+        "weekday": 1,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-10",
+        "weekday": 2,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-11",
+        "weekday": 3,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-12",
+        "weekday": 4,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-13",
+        "weekday": 5,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-14",
+        "weekday": 6,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-15",
+        "weekday": 7,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-16",
+        "weekday": 1,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-17",
+        "weekday": 2,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-18",
+        "weekday": 3,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-19",
+        "weekday": 4,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-20",
+        "weekday": 5,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-21",
+        "weekday": 6,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-22",
+        "weekday": 7,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-23",
+        "weekday": 1,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-24",
+        "weekday": 2,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-25",
+        "weekday": 3,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-26",
+        "weekday": 4,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-27",
+        "weekday": 5,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-28",
+        "weekday": 6,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-29",
+        "weekday": 7,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": true,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      },
+      {
+        "date": "2026-11-30",
+        "weekday": 1,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": false,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": 1
+      }
+    ],
+    "DailyShiftDemands": [
+      {
+        "demandId": "DEM-2026-11-01-A",
+        "date": "2026-11-01",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-01-B",
+        "date": "2026-11-01",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-01-C",
+        "date": "2026-11-01",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-02-A",
+        "date": "2026-11-02",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-02-B",
+        "date": "2026-11-02",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-02-C",
+        "date": "2026-11-02",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-03-A",
+        "date": "2026-11-03",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-03-B",
+        "date": "2026-11-03",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-03-C",
+        "date": "2026-11-03",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-04-A",
+        "date": "2026-11-04",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-04-B",
+        "date": "2026-11-04",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-04-C",
+        "date": "2026-11-04",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-05-A",
+        "date": "2026-11-05",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-05-B",
+        "date": "2026-11-05",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-05-C",
+        "date": "2026-11-05",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-06-A",
+        "date": "2026-11-06",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-06-B",
+        "date": "2026-11-06",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-06-C",
+        "date": "2026-11-06",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-07-A",
+        "date": "2026-11-07",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-07-B",
+        "date": "2026-11-07",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-07-C",
+        "date": "2026-11-07",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-08-A",
+        "date": "2026-11-08",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-08-B",
+        "date": "2026-11-08",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-08-C",
+        "date": "2026-11-08",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-09-A",
+        "date": "2026-11-09",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-09-B",
+        "date": "2026-11-09",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-09-C",
+        "date": "2026-11-09",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-10-A",
+        "date": "2026-11-10",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-10-B",
+        "date": "2026-11-10",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-10-C",
+        "date": "2026-11-10",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-11-A",
+        "date": "2026-11-11",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-11-B",
+        "date": "2026-11-11",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-11-C",
+        "date": "2026-11-11",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-12-A",
+        "date": "2026-11-12",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-12-B",
+        "date": "2026-11-12",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-12-C",
+        "date": "2026-11-12",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-13-A",
+        "date": "2026-11-13",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-13-B",
+        "date": "2026-11-13",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-13-C",
+        "date": "2026-11-13",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-14-A",
+        "date": "2026-11-14",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-14-B",
+        "date": "2026-11-14",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-14-C",
+        "date": "2026-11-14",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-15-A",
+        "date": "2026-11-15",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-15-B",
+        "date": "2026-11-15",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-15-C",
+        "date": "2026-11-15",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-16-A",
+        "date": "2026-11-16",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-16-B",
+        "date": "2026-11-16",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-16-C",
+        "date": "2026-11-16",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-17-A",
+        "date": "2026-11-17",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-17-B",
+        "date": "2026-11-17",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-17-C",
+        "date": "2026-11-17",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-18-A",
+        "date": "2026-11-18",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-18-B",
+        "date": "2026-11-18",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-18-C",
+        "date": "2026-11-18",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-19-A",
+        "date": "2026-11-19",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-19-B",
+        "date": "2026-11-19",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-19-C",
+        "date": "2026-11-19",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-20-A",
+        "date": "2026-11-20",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-20-B",
+        "date": "2026-11-20",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-20-C",
+        "date": "2026-11-20",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-21-A",
+        "date": "2026-11-21",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-21-B",
+        "date": "2026-11-21",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-21-C",
+        "date": "2026-11-21",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-22-A",
+        "date": "2026-11-22",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-22-B",
+        "date": "2026-11-22",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-22-C",
+        "date": "2026-11-22",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-23-A",
+        "date": "2026-11-23",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-23-B",
+        "date": "2026-11-23",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-23-C",
+        "date": "2026-11-23",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-24-A",
+        "date": "2026-11-24",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-24-B",
+        "date": "2026-11-24",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-24-C",
+        "date": "2026-11-24",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-25-A",
+        "date": "2026-11-25",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-25-B",
+        "date": "2026-11-25",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-25-C",
+        "date": "2026-11-25",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-26-A",
+        "date": "2026-11-26",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-26-B",
+        "date": "2026-11-26",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-26-C",
+        "date": "2026-11-26",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-27-A",
+        "date": "2026-11-27",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-27-B",
+        "date": "2026-11-27",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-27-C",
+        "date": "2026-11-27",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-28-A",
+        "date": "2026-11-28",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-28-B",
+        "date": "2026-11-28",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-28-C",
+        "date": "2026-11-28",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-29-A",
+        "date": "2026-11-29",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-29-B",
+        "date": "2026-11-29",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-29-C",
+        "date": "2026-11-29",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-30-A",
+        "date": "2026-11-30",
+        "shiftId": "A",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-30-B",
+        "date": "2026-11-30",
+        "shiftId": "B",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      },
+      {
+        "demandId": "DEM-2026-11-30-C",
+        "date": "2026-11-30",
+        "shiftId": "C",
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": 1
+      }
+    ],
+    "ShiftQualificationDemands": [],
+    "EmployeeQualifications": [],
+    "EmployeePreferences": [],
+    "EmployeeAvailability": [],
+    "RecurringAvailability": [],
+    "LeaveRequests": [],
+    "PairingRules": [],
+    "ShiftTransitions": [],
+    "ScheduleVersions": [],
+    "ScheduleAssignments": [],
+    "AssignmentLocks": [],
+    "SchedulingTasks": [],
+    "TaskCheckpoints": [],
+    "TaskEvents": [],
+    "ValidationReports": [],
+    "ChangeLogs": [],
+    "AuditLogs": [],
+    "Notifications": [],
+    "AlgorithmComparisons": [],
+    "Backups": [],
+    "DeploymentHistory": [],
+    "ForcedShifts": [],
+    "CrossMonthCoverage": [],
+    "EmployeeSettingsHistory": [],
+    "LegalPolicy": []
+  },
+  "scheduleView": [
+    {
+      "date": "2026-11-01",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-01",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-01",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-02",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-02",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-02",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-03",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-03",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-03",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-04",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-04",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-04",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-05",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-05",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-05",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-06",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-06",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-06",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-07",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-07",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-07",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-08",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-08",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-08",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-09",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-09",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-09",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-10",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-10",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-10",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-11",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-11",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-11",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-12",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-12",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-12",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-13",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-13",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-13",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-14",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-14",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-14",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-15",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-15",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-15",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-16",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-16",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-16",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-17",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-17",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-17",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-18",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-18",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-18",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-19",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-19",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-19",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-20",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-20",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-20",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-21",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-21",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-21",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-22",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-22",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-22",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-23",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-23",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-23",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-24",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-24",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-24",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-25",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-25",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-25",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-26",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-26",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-26",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-27",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-27",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-27",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-28",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-28",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-28",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-29",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-29",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-29",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-30",
+      "shiftId": "A",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-30",
+      "shiftId": "B",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    },
+    {
+      "date": "2026-11-30",
+      "shiftId": "C",
+      "employeeIds": [],
+      "status": "UNFILLED"
+    }
+  ]
+}

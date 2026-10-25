@@ -1,0 +1,12 @@
+{
+  "name": "clinic-auto-scheduler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "診所排班資料範本；尚非正式排班系統",
+  "scripts": {
+    "build:templates": "node scripts/build-template.mjs",
+    "check": "node scripts/check-template.mjs",
+    "test": "node --test"
+  }
+}

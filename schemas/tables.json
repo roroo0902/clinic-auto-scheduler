@@ -1,0 +1,826 @@
+{
+  "schemaVersion": "0.1.0",
+  "status": "DATA_CONTRACT_ONLY",
+  "commonAuditFields": [
+    "recordVersion",
+    "updatedAt",
+    "updatedBy"
+  ],
+  "note": "正式後端新增或更新紀錄時補上通用稽核欄位；時間與操作者須由伺服器產生。此檔列欄位，不宣稱已實作遷移或驗證器。",
+  "tables": {
+    "SystemConfig": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "key",
+        "value",
+        "type",
+        "scope",
+        "effectiveFrom",
+        "effectiveTo",
+        "version",
+        "status"
+      ],
+      "blankRecord": {
+        "key": null,
+        "value": null,
+        "type": null,
+        "scope": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": null,
+        "status": null
+      }
+    },
+    "Employees": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "employeeId",
+        "displayName",
+        "active",
+        "department",
+        "employmentType",
+        "targetMonthlyHours",
+        "minMonthlyRestDays",
+        "maxMonthlyWorkDays",
+        "maxDailyHours",
+        "maxWeeklyHours",
+        "maxConsecutiveDays",
+        "preferredMinDailyHours",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "employeeId": null,
+        "displayName": null,
+        "active": null,
+        "department": null,
+        "employmentType": null,
+        "targetMonthlyHours": null,
+        "minMonthlyRestDays": null,
+        "maxMonthlyWorkDays": null,
+        "maxDailyHours": null,
+        "maxWeeklyHours": null,
+        "maxConsecutiveDays": null,
+        "preferredMinDailyHours": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "ShiftDefinitions": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "shiftId",
+        "shiftName",
+        "startTime",
+        "endTime",
+        "endDayOffset",
+        "unpaidBreakMinutes",
+        "breakRules",
+        "hoursCalculationPolicy",
+        "effectiveFrom",
+        "effectiveTo",
+        "version"
+      ],
+      "blankRecord": {
+        "shiftId": null,
+        "shiftName": null,
+        "startTime": null,
+        "endTime": null,
+        "endDayOffset": null,
+        "unpaidBreakMinutes": null,
+        "breakRules": null,
+        "hoursCalculationPolicy": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": null
+      }
+    },
+    "CalendarDates": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "date",
+        "weekday",
+        "isOperatingDay",
+        "isNationalHoliday",
+        "weekendFlag",
+        "holidayType",
+        "notes",
+        "calendarVersion"
+      ],
+      "blankRecord": {
+        "date": null,
+        "weekday": null,
+        "isOperatingDay": null,
+        "isNationalHoliday": null,
+        "weekendFlag": null,
+        "holidayType": null,
+        "notes": null,
+        "calendarVersion": null
+      }
+    },
+    "DailyShiftDemands": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "demandId",
+        "date",
+        "shiftId",
+        "requiredHeadcount",
+        "MaxStaff",
+        "version"
+      ],
+      "blankRecord": {
+        "demandId": null,
+        "date": null,
+        "shiftId": null,
+        "requiredHeadcount": null,
+        "MaxStaff": null,
+        "version": null
+      }
+    },
+    "ShiftQualificationDemands": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "demandId",
+        "date",
+        "shiftId",
+        "qualificationId",
+        "minimumQualifiedCount",
+        "distinctPersonRequirement",
+        "version"
+      ],
+      "blankRecord": {
+        "demandId": null,
+        "date": null,
+        "shiftId": null,
+        "qualificationId": null,
+        "minimumQualifiedCount": null,
+        "distinctPersonRequirement": null,
+        "version": null
+      }
+    },
+    "EmployeeQualifications": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "employeeId",
+        "qualificationId",
+        "qualificationName",
+        "roleCategory",
+        "verifiedForLegalDuty",
+        "verificationSourceRef",
+        "verificationAsOf",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "employeeId": null,
+        "qualificationId": null,
+        "qualificationName": null,
+        "roleCategory": null,
+        "verifiedForLegalDuty": null,
+        "verificationSourceRef": null,
+        "verificationAsOf": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "EmployeePreferences": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "preferenceId",
+        "employeeId",
+        "preferenceType",
+        "shiftId",
+        "dayOfWeek",
+        "holidayType",
+        "rankOrPreference",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "preferenceId": null,
+        "employeeId": null,
+        "preferenceType": null,
+        "shiftId": null,
+        "dayOfWeek": null,
+        "holidayType": null,
+        "rankOrPreference": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "EmployeeAvailability": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "availabilityId",
+        "employeeId",
+        "date",
+        "shiftId",
+        "conditionType",
+        "isHard",
+        "source",
+        "approvalStatus",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "availabilityId": null,
+        "employeeId": null,
+        "date": null,
+        "shiftId": null,
+        "conditionType": null,
+        "isHard": null,
+        "source": null,
+        "approvalStatus": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "RecurringAvailability": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "recurringId",
+        "employeeId",
+        "weekday",
+        "shiftId",
+        "conditionType",
+        "isHard",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "recurringId": null,
+        "employeeId": null,
+        "weekday": null,
+        "shiftId": null,
+        "conditionType": null,
+        "isHard": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "LeaveRequests": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "requestId",
+        "employeeId",
+        "startDate",
+        "endDate",
+        "requestedShifts",
+        "status",
+        "reasonRef",
+        "reviewedBy",
+        "reviewedAt",
+        "version"
+      ],
+      "blankRecord": {
+        "requestId": null,
+        "employeeId": null,
+        "startDate": null,
+        "endDate": null,
+        "requestedShifts": null,
+        "status": null,
+        "reasonRef": null,
+        "reviewedBy": null,
+        "reviewedAt": null,
+        "version": null
+      }
+    },
+    "PairingRules": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "ruleId",
+        "employeeA",
+        "employeeB",
+        "pairingMode",
+        "isHard",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "ruleId": null,
+        "employeeA": null,
+        "employeeB": null,
+        "pairingMode": null,
+        "isHard": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "ShiftTransitions": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "transitionId",
+        "employeeId",
+        "fromShiftId",
+        "toShiftId",
+        "ruleMode",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "transitionId": null,
+        "employeeId": null,
+        "fromShiftId": null,
+        "toShiftId": null,
+        "ruleMode": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "ScheduleVersions": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "scheduleVersionId",
+        "yearMonth",
+        "sequence",
+        "status",
+        "sourceTaskId",
+        "parentVersionId",
+        "createdBy",
+        "createdAt",
+        "publishedAt",
+        "inputVersionHash",
+        "validationStatus",
+        "version"
+      ],
+      "blankRecord": {
+        "scheduleVersionId": null,
+        "yearMonth": null,
+        "sequence": null,
+        "status": null,
+        "sourceTaskId": null,
+        "parentVersionId": null,
+        "createdBy": null,
+        "createdAt": null,
+        "publishedAt": null,
+        "inputVersionHash": null,
+        "validationStatus": null,
+        "version": null
+      }
+    },
+    "ScheduleAssignments": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "assignmentId",
+        "scheduleVersionId",
+        "employeeId",
+        "date",
+        "shiftId",
+        "startAt",
+        "endAt",
+        "calculatedWorkMinutes",
+        "roleOrQualificationAssignment",
+        "status",
+        "version"
+      ],
+      "blankRecord": {
+        "assignmentId": null,
+        "scheduleVersionId": null,
+        "employeeId": null,
+        "date": null,
+        "shiftId": null,
+        "startAt": null,
+        "endAt": null,
+        "calculatedWorkMinutes": null,
+        "roleOrQualificationAssignment": null,
+        "status": null,
+        "version": null
+      }
+    },
+    "AssignmentLocks": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "lockId",
+        "employeeId",
+        "date",
+        "shiftId",
+        "locked",
+        "lockedBy",
+        "lockedAt",
+        "reason",
+        "version"
+      ],
+      "blankRecord": {
+        "lockId": null,
+        "employeeId": null,
+        "date": null,
+        "shiftId": null,
+        "locked": null,
+        "lockedBy": null,
+        "lockedAt": null,
+        "reason": null,
+        "version": null
+      }
+    },
+    "SchedulingTasks": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "taskId",
+        "yearMonth",
+        "requestId",
+        "status",
+        "stage",
+        "algorithmVersion",
+        "githubCommit",
+        "gasDeploymentVersion",
+        "configVersion",
+        "inputSnapshotHash",
+        "randomSeed",
+        "accumulatedComputeMs",
+        "evaluatedCandidateCount",
+        "bestShortageCount",
+        "bestHourError",
+        "stopReason",
+        "retryCount",
+        "cancelRequested",
+        "createdBy",
+        "createdAt",
+        "updatedAt",
+        "lastError",
+        "sourceScheduleVersionId"
+      ],
+      "blankRecord": {
+        "taskId": null,
+        "yearMonth": null,
+        "requestId": null,
+        "status": null,
+        "stage": null,
+        "algorithmVersion": null,
+        "githubCommit": null,
+        "gasDeploymentVersion": null,
+        "configVersion": null,
+        "inputSnapshotHash": null,
+        "randomSeed": null,
+        "accumulatedComputeMs": null,
+        "evaluatedCandidateCount": null,
+        "bestShortageCount": null,
+        "bestHourError": null,
+        "stopReason": null,
+        "retryCount": null,
+        "cancelRequested": null,
+        "createdBy": null,
+        "createdAt": null,
+        "updatedAt": null,
+        "lastError": null,
+        "sourceScheduleVersionId": null
+      }
+    },
+    "TaskCheckpoints": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "taskId",
+        "checkpointSeq",
+        "schemaVersion",
+        "engineVersion",
+        "inputSnapshotHash",
+        "serializedSolverStateRef",
+        "searchMetrics",
+        "createdAt",
+        "integrityHash",
+        "resumeAllowed"
+      ],
+      "blankRecord": {
+        "taskId": null,
+        "checkpointSeq": null,
+        "schemaVersion": null,
+        "engineVersion": null,
+        "inputSnapshotHash": null,
+        "serializedSolverStateRef": null,
+        "searchMetrics": null,
+        "createdAt": null,
+        "integrityHash": null,
+        "resumeAllowed": null
+      }
+    },
+    "TaskEvents": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "eventId",
+        "taskId",
+        "eventType",
+        "stage",
+        "timestamp",
+        "safeMessage",
+        "metricsSnapshot"
+      ],
+      "blankRecord": {
+        "eventId": null,
+        "taskId": null,
+        "eventType": null,
+        "stage": null,
+        "timestamp": null,
+        "safeMessage": null,
+        "metricsSnapshot": null
+      }
+    },
+    "ValidationReports": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "reportId",
+        "taskId",
+        "scheduleVersionId",
+        "ruleId",
+        "severity",
+        "date",
+        "employeeId",
+        "shiftId",
+        "issueCode",
+        "issueDetail",
+        "resolved",
+        "verifiedAt",
+        "validatorVersion"
+      ],
+      "blankRecord": {
+        "reportId": null,
+        "taskId": null,
+        "scheduleVersionId": null,
+        "ruleId": null,
+        "severity": null,
+        "date": null,
+        "employeeId": null,
+        "shiftId": null,
+        "issueCode": null,
+        "issueDetail": null,
+        "resolved": null,
+        "verifiedAt": null,
+        "validatorVersion": null
+      }
+    },
+    "ChangeLogs": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "changeId",
+        "scheduleVersionId",
+        "entityType",
+        "entityId",
+        "beforeJson",
+        "afterJson",
+        "operatorId",
+        "changedAt",
+        "approvalRef",
+        "reason"
+      ],
+      "blankRecord": {
+        "changeId": null,
+        "scheduleVersionId": null,
+        "entityType": null,
+        "entityId": null,
+        "beforeJson": null,
+        "afterJson": null,
+        "operatorId": null,
+        "changedAt": null,
+        "approvalRef": null,
+        "reason": null
+      }
+    },
+    "AuditLogs": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "auditId",
+        "actorId",
+        "action",
+        "targetId",
+        "timestamp",
+        "requestId",
+        "resultStatus",
+        "clientVersion",
+        "metadataSafe"
+      ],
+      "blankRecord": {
+        "auditId": null,
+        "actorId": null,
+        "action": null,
+        "targetId": null,
+        "timestamp": null,
+        "requestId": null,
+        "resultStatus": null,
+        "clientVersion": null,
+        "metadataSafe": null
+      }
+    },
+    "Notifications": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "notificationId",
+        "scheduleVersionId",
+        "affectedEmployeeId",
+        "beforeAfterSummary",
+        "messageText",
+        "status",
+        "confirmedBy",
+        "confirmedAt",
+        "manuallySentAt",
+        "version"
+      ],
+      "blankRecord": {
+        "notificationId": null,
+        "scheduleVersionId": null,
+        "affectedEmployeeId": null,
+        "beforeAfterSummary": null,
+        "messageText": null,
+        "status": null,
+        "confirmedBy": null,
+        "confirmedAt": null,
+        "manuallySentAt": null,
+        "version": null
+      }
+    },
+    "AlgorithmComparisons": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "comparisonId",
+        "requestedBy",
+        "oldAlgoVersion",
+        "newAlgoVersion",
+        "oldGitCommit",
+        "newGitCommit",
+        "oldGasVersion",
+        "newGasVersion",
+        "snapshotHash",
+        "budgetMs",
+        "lexicographicMetrics",
+        "hardValidationResults",
+        "decision",
+        "createdAt"
+      ],
+      "blankRecord": {
+        "comparisonId": null,
+        "requestedBy": null,
+        "oldAlgoVersion": null,
+        "newAlgoVersion": null,
+        "oldGitCommit": null,
+        "newGitCommit": null,
+        "oldGasVersion": null,
+        "newGasVersion": null,
+        "snapshotHash": null,
+        "budgetMs": null,
+        "lexicographicMetrics": null,
+        "hardValidationResults": null,
+        "decision": null,
+        "createdAt": null
+      }
+    },
+    "Backups": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "backupId",
+        "createdAt",
+        "driveFileId",
+        "sourceSpreadsheetId",
+        "sourceVersion",
+        "integrityInfo",
+        "restorePreviewRef",
+        "restoredBy",
+        "restoredAt",
+        "status"
+      ],
+      "blankRecord": {
+        "backupId": null,
+        "createdAt": null,
+        "driveFileId": null,
+        "sourceSpreadsheetId": null,
+        "sourceVersion": null,
+        "integrityInfo": null,
+        "restorePreviewRef": null,
+        "restoredBy": null,
+        "restoredAt": null,
+        "status": null
+      }
+    },
+    "DeploymentHistory": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "releaseId",
+        "approvedBy",
+        "approvedAt",
+        "githubCommit",
+        "gasScriptId",
+        "gasDeploymentId",
+        "gasVersion",
+        "frontendBuildId",
+        "testReportId",
+        "rollbackTarget",
+        "status"
+      ],
+      "blankRecord": {
+        "releaseId": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "githubCommit": null,
+        "gasScriptId": null,
+        "gasDeploymentId": null,
+        "gasVersion": null,
+        "frontendBuildId": null,
+        "testReportId": null,
+        "rollbackTarget": null,
+        "status": null
+      }
+    },
+    "ForcedShifts": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "forcedShiftId",
+        "employeeId",
+        "date",
+        "shiftId",
+        "source",
+        "validFrom",
+        "validTo",
+        "version"
+      ],
+      "blankRecord": {
+        "forcedShiftId": null,
+        "employeeId": null,
+        "date": null,
+        "shiftId": null,
+        "source": null,
+        "validFrom": null,
+        "validTo": null,
+        "version": null
+      }
+    },
+    "CrossMonthCoverage": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "employeeId",
+        "date",
+        "coverageStatus",
+        "sourceScheduleVersionId",
+        "verifiedBy",
+        "verifiedAt"
+      ],
+      "blankRecord": {
+        "employeeId": null,
+        "date": null,
+        "coverageStatus": null,
+        "sourceScheduleVersionId": null,
+        "verifiedBy": null,
+        "verifiedAt": null
+      }
+    },
+    "EmployeeSettingsHistory": {
+      "purpose": "SYSTEM_GENERATED",
+      "fields": [
+        "settingsVersionId",
+        "employeeId",
+        "effectiveFrom",
+        "effectiveTo",
+        "settingsJson",
+        "sourceVersion"
+      ],
+      "blankRecord": {
+        "settingsVersionId": null,
+        "employeeId": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "settingsJson": null,
+        "sourceVersion": null
+      }
+    },
+    "LegalPolicy": {
+      "purpose": "ADMIN_INPUT",
+      "fields": [
+        "policyId",
+        "jurisdiction",
+        "employmentType",
+        "weeklyStartDay",
+        "minRestMinutes",
+        "policyJson",
+        "verificationSourceRef",
+        "approvedBy",
+        "approvedAt",
+        "effectiveFrom",
+        "effectiveTo",
+        "version"
+      ],
+      "blankRecord": {
+        "policyId": null,
+        "jurisdiction": null,
+        "employmentType": null,
+        "weeklyStartDay": null,
+        "minRestMinutes": null,
+        "policyJson": null,
+        "verificationSourceRef": null,
+        "approvedBy": null,
+        "approvedAt": null,
+        "effectiveFrom": null,
+        "effectiveTo": null,
+        "version": null
+      }
+    }
+  }
+}
