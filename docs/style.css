@@ -121,18 +121,14 @@ body:has(dialog[open]){overflow:hidden}
 }
 @media(hover:none){.menu button:hover{transform:none}.menu button:active{transform:scale(.99)}}
 
-/* Slightly clearer character contrast and user-controlled mobile framing. */
-.world{filter:contrast(1.09) saturate(1.03)}
-.scene-control{display:none}
+/* Fixed portrait composition: face and sword visible together. */
+.world{filter:contrast(1.18) saturate(1.08)}
 @media(max-width:900px){
- .world{background-position:var(--scene-x,67%) center}
- .world:after{background:linear-gradient(90deg,rgba(30,36,49,.78),rgba(34,40,52,.48)),linear-gradient(0deg,rgba(36,43,56,.64),transparent 65%)}
- main{touch-action:pan-y pinch-zoom}
- .scene-control{display:block;margin-top:18px;padding:12px 14px;border:1px solid #c7c6c433;border-radius:8px;background:#252e3d9e}
- .scene-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
- .scene-heading label{font-size:12px;color:#e1d8c6}
- .scene-reset{min-height:44px;padding:6px 10px;border:1px solid #c7bda35c;border-radius:6px;color:var(--gold);background:transparent;font-size:12px}
- #scene-position{width:100%;min-height:44px;margin:0;padding:0;border:0;background:transparent;accent-color:#d6c299;touch-action:pan-y}
- .scene-caption{display:flex;justify-content:space-between;color:#d2d6df;font-size:11px;line-height:1.7}
- .scene-help{font-size:11px;color:#d2d6df;line-height:1.6;margin:7px 0 0}
+ .world{bottom:auto;height:100vh;height:100svh;background-position:84% center}
+ .world:after{background:linear-gradient(90deg,rgba(24,30,42,.58),rgba(24,30,42,.22)),linear-gradient(0deg,rgba(28,35,48,.42),transparent 60%)}
+ .hero h1,.intro{text-shadow:0 2px 12px rgba(8,15,25,.65)}
+ .menu button{-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+}
+@media(max-width:900px) and (orientation:landscape) and (max-height:500px){
+ .world{background-position:76% center}
 }
