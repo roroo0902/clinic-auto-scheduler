@@ -10,3 +10,5 @@ export function validateRecord(headers,values,sheet){const o=Object.fromEntries(
 export function cellValue(value){return {userEnteredValue:typeof value==='boolean'?{boolValue:value}:typeof value==='number'?{numberValue:value}:{stringValue:String(value)}};}
 export function changes(headers,before,after){return headers.flatMap((key,i)=>(before[i]??'')===after[i]?[]:[{key,index:i,before:before[i]??'',after:after[i]}]);}
 export function updateRequests(sheetId,rowIndex,diff){return diff.map(d=>({updateCells:{start:{sheetId,rowIndex,columnIndex:d.index},rows:[{values:[cellValue(d.after)]}],fields:'userEnteredValue'}}));}
+
+export function nextEmployeeId(ids){const max=ids.reduce((n,id)=>{const m=/^EMP(\d+)$/.exec(String(id));return m?Math.max(n,Number(m[1])):n;},0);if(!Number.isSafeInteger(max+1))throw Error('員工代碼超出可用範圍');return 'EMP'+String(max+1).padStart(3,'0');}
