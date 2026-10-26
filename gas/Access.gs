@@ -33,13 +33,13 @@ function getMenuSection(section) {
   const member = requireMember_(); // Re-read on every request, so revocation takes effect.
   const menus = {
     new: {title:'召喚醫者', tabs:['Employees','EmployeeQualifications','AllowedShifts']},
-    roles: {title:'英靈編成', tabs:['Employees','AllowedShifts','EmployeeAvailability','RecurringAvailability','ForcedShifts','LeaveRequests','個人假日設定']},
+    roles: {title:'英靈編成', tabs:['Employees','AllowedShifts','EmployeeAvailability','RecurringAvailability','ForcedShifts','EmployeePreferences','組合優先設定','班別優先人員','LeaveRequests','個人假日設定']},
     battle: {title:'啟動命運之輪', tabs:['排班控制','DailyShiftDemands','Schedule_W1初版','統計與檢查規則']},
     other: {title:'禁忌藏書閣', tabs:['參數設定索引','使用說明','ShiftDefinitions','CalendarDates']}
   };
   if (!Object.prototype.hasOwnProperty.call(menus, section)) throw Error('無效的選單。');
   if (section === 'other' && member.role === '管理者') menus.other.tabs.push(ACCESS_TAB, 'SystemConfig');
-  return {title:menus[section].title, links:menus[section].tabs.map(name => ({name, url:'https://docs.google.com/spreadsheets/d/'+ACCESS_SHEET_ID+'/edit#range='+encodeURIComponent("'"+name.replace(/'/g,"''")+"'!A1")}))};
+  return {title:menus[section].title, links:menus[section].tabs.map(name => ({name, label:FORM_NAMES_[name]||name, url:'https://docs.google.com/spreadsheets/d/'+ACCESS_SHEET_ID+'/edit#range='+encodeURIComponent("'"+name.replace(/'/g,"''")+"'!A1")}))};
 }
 
 function doGet() {
