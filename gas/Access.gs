@@ -18,9 +18,9 @@ function requireMember_() {
   if (!email || email.toLowerCase() !== effective.toLowerCase()) throw Error('無法驗證登入者，請以自己的 Google 帳號登入。');
   let rows;
   try {
-    const sheet = SpreadsheetApp.openById(ACCESS_SHEET_ID).getSheetByName(ACCESS_TAB);
-    if (!sheet || sheet.getLastRow() > 1000) throw Error('Invalid roster');
-    rows = sheet.getRange(1, 1, Math.max(1, sheet.getLastRow()), 5).getValues();
+    const result = Sheets.Spreadsheets.Values.get(ACCESS_SHEET_ID, "'" + ACCESS_TAB + "'!A1:E1001", {valueRenderOption: 'UNFORMATTED_VALUE'});
+    rows = result.values || [];
+    if (rows.length > 1000) throw Error('Invalid roster');
   } catch (e) {
     throw Error('無法讀取授權名單，請確認此 Google 帳號具有排班試算表的存取權限。');
   }
@@ -54,3 +54,4 @@ function doGet() {
 function escapeHtml_(value) {
   return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+
