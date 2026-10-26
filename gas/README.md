@@ -21,3 +21,14 @@
 測試：node --test tests/access.test.mjs
 
 官方依據：https://developers.google.com/apps-script/guides/web
+
+
+## 網站內表單 v4（2026-10-26）
+
+全部選單改為中文站內入口，設定資料支援讀取、新增、預覽與確認儲存；當月班表、參數索引與使用說明在網站內查閱。資料保留在指定 Google Sheets，不會上傳到 GitHub。已驗證現有員工讀取及不儲存的新增預覽。16 項模擬測試通過。
+
+目前部署仍為唯讀 scope，Google 寫入授權尚待使用者即時確認。不得宣稱正式寫入已啟用。獲確認後，將 manifest 的 spreadsheets.readonly 改為 spreadsheets，部署新版並完成 Google 重新授權，再驗證寫入。網站存取授權與 Google Sheets 自身權限皆會檢查。
+
+網頁編輯器程式已內嵌於 Apps Script，不再依賴另外的 OAuth Client ID。部署時合併 Access.gs、Model.gs、Data.gs、Portal.gs，另使用 appsscript.json。build-login-portal.mjs 從 portal-template.html、Form.html、Model.gs 建置 Portal.gs。
+
+保存使用 ScriptLock 串行處理本站請求，儲存前比對完整快照並讀回確認。Google Sheets 外部直接編輯不能被 ScriptLock 鎖定，請避免多人同時編輯同一列。公式欄保留；未支援的進階資料驗證拒絕修改。此版本不提供刪除資料或自動排班。
