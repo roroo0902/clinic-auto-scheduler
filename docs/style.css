@@ -33,3 +33,12 @@ header,footer{background:rgba(29,35,46,.28)}
 dialog{background:#303746}
 input{background:#252d3b}
 @media(max-width:760px){.world:after{background:linear-gradient(90deg,rgba(30,36,49,.83),rgba(34,40,52,.61)),linear-gradient(0deg,rgba(36,43,56,.5),transparent)}}
+
+/* Clinic identity and direct links to verified Google Sheets tabs. */
+.sheet-links{display:grid;gap:8px}
+.sheet-links .action{display:block;margin:0;text-align:left;font-size:14px}
+.sheet-links .action:hover{background:#ffffff12}
+header{flex-wrap:wrap}
+.brand{line-height:1.5}
+.hero h1{font-size:clamp(32px,3.2vw,47px)}
+@media(max-width:760px){.brand{font-size:18px;letter-spacing:1px}.brand small{display:block;font-size:10px;margin-left:23px}.hero h1{font-size:32px}}
