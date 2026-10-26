@@ -1,34 +1,28 @@
-# Google 登入入口（已部署）
+# Google 登入與網站內表單（已部署）
 
-此後端使用 Apps Script 的 Google 登入，必須部署為「以存取網頁應用程式的使用者執行」，限定 Google 帳號。每個請求以該使用者的 Google 權限讀取「登入授權名單」，不接收密碼、不接收前端提供的信箱、不回傳 OAuth token。
+2026-10-26 已部署第 6 版。使用者已明確同意由唯讀升級為試算表讀寫。已在正式網站以管理者備註的啟用紀錄驗證寫入與讀回；沒有更動員工或排班資料。17 項模擬測試通過，涵蓋授權、資料驗證、衝突防護及 API 欄位順序變化。
 
-部署 Access.gs、Portal.gs、appsscript.json（網頁編輯器也可將前兩者合併為一個 .gs）。使用唯讀試算表及電子郵件 scope。新增版本後設定為 USER_ACCESSING、ANYONE（Google 帳號；不是 ANYONE_ANONYMOUS）。先驗證擁有者可進入、未列名帳號被拒、停用後下一次請求被拒，再將 GitHub Pages 首頁改成登入入口。未驗證部署前不得宣稱登入已啟用。
+## 操作與授權
 
-部署狀態：2026-10-26 已部署第 3 版，已實測擁有者登入與管理選單，公開首頁已改為 Google 登入入口。7 項模擬授權測試通過；其他帳號與停用情境尚未在真人帳號端測試。原有表單編輯器仍需另設 OAuth Client ID，登入入口本身不需要該 Client ID。
+網站中文選單 → 站內表單 → 預覽變更 → 勾選確認 → 寫入 Google Sheets。設定資料可新增與修改；當月班表、參數索引與使用說明僅供查閱。此版本尚未啟用自動排班，不提供刪除資料。
+
+Apps Script 以 USER_ACCESSING 執行，ANYONE 表示已登入 Google 帳號，並非匿名開放。每次讀寫均重新驗證受保護的「登入授權名單」，再檢查角色；Google Sheets 自身分享及保護權限仍適用。新增登入名單不會授予 Google Drive 權限，停用名單也不會移除原始檔分享。
+
+使用 userinfo.email 與 spreadsheets OAuth scopes。後者涵蓋使用者可存取的試算表，程式固定只處理 ACCESS_SHEET_ID 指定的排班檔案。其他使用者首次使用可能須完成 Google 授權；其他真人帳號的授權流程尚未實測。
+
+授權名單欄位為 Google 信箱、顯示名稱、角色、啟用、備註。角色僅允許管理者／一般使用者，啟用須為布林值，重複信箱拒絕登入。名單分頁保護僅允許擁有者修改。公開 GitHub 不得儲存名單、密碼或 token。
+
+## 部署
+
+合併 Access.gs、Model.gs、Data.gs、Portal.gs 到 Apps Script，並使用 appsscript.json。網頁表單透過 google.script.run 呼叫後端，不需要另外設定 OAuth Client ID。
+
+建置：node scripts/build-login-portal.mjs
+測試：node --test tests/access.test.mjs tests/forms.test.mjs
 
 登入網址：https://script.google.com/macros/s/AKfycbyuwmhkBqs1A6kk5IkPx0cdso_2eBdrxjyNHzD22ho9cI06mYZMDDbxvyP7iDsMaOmT/exec
 
 正式專案：https://script.google.com/home/projects/1YBSX8SnfzVMyoetC5gwYDTzD81HW4dxbjtc21peNB-rM_VgLOgmdZRXP/edit
 
-授權名單欄位：Google 信箱、顯示名稱、角色、啟用、備註。啟用必須是真正勾選的布林值；重複信箱拒絕登入。僅允許「管理者」「一般使用者」。分頁只允許既有擁有者修改。
+## 資料一致性
 
-此版本是受保護的試算表入口，不是排班引擎或表單寫入 API。一般使用者的實際讀寫權由 Google Sheets 分享與保護設定決定；角色僅控制網站管理連結。Google Sheets 已有權限的人仍能直接開啟原始檔。停用網站帳號不會撤銷 Google Drive 權限，完全離職停權時需另行移除原始檔分享。
-
-公開 GitHub Pages 與公開原始碼不能作為機密資料儲存處。不要把名單、密碼或 token 加入前端。所有後續後端讀寫方法均須先呼叫 requireMember_()，並依動作檢查角色。
-
-建置：node scripts/build-login-portal.mjs
-
-測試：node --test tests/access.test.mjs
-
-官方依據：https://developers.google.com/apps-script/guides/web
-
-
-## 網站內表單 v4（2026-10-26）
-
-全部選單改為中文站內入口，設定資料支援讀取、新增、預覽與確認儲存；當月班表、參數索引與使用說明在網站內查閱。資料保留在指定 Google Sheets，不會上傳到 GitHub。已驗證現有員工讀取及不儲存的新增預覽。16 項模擬測試通過。
-
-目前部署仍為唯讀 scope，Google 寫入授權尚待使用者即時確認。不得宣稱正式寫入已啟用。獲確認後，將 manifest 的 spreadsheets.readonly 改為 spreadsheets，部署新版並完成 Google 重新授權，再驗證寫入。網站存取授權與 Google Sheets 自身權限皆會檢查。
-
-網頁編輯器程式已內嵌於 Apps Script，不再依賴另外的 OAuth Client ID。部署時合併 Access.gs、Model.gs、Data.gs、Portal.gs，另使用 appsscript.json。build-login-portal.mjs 從 portal-template.html、Form.html、Model.gs 建置 Portal.gs。
-
-保存使用 ScriptLock 串行處理本站請求，儲存前比對完整快照並讀回確認。Google Sheets 外部直接編輯不能被 ScriptLock 鎖定，請避免多人同時編輯同一列。公式欄保留；未支援的進階資料驗證拒絕修改。此版本不提供刪除資料或自動排班。
+儲存以 ScriptLock 串行處理本站請求，比對排序後的資料快照並讀回確認。Google API 物件屬性順序改變不會誤報資料衝突；實際內容變更仍拒絕舊草稿。Google Sheets 外部直接編輯不受 ScriptLock 保護，請避免同時編輯同一列。公式欄保留，未支援的進階資料驗證拒絕修改。
