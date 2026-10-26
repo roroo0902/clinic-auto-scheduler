@@ -54,11 +54,13 @@ function sheetHref(name){
 function updateStatus(){$('connection').textContent=(sheetUrl===defaultSheetUrl?'瑞恩排班試算表':'自訂排班試算表')+' · 開啟需 Google 權限';}
 function setup(){$('sheet-url').value=sheetUrl;$('config-error').textContent='';$('config').showModal();}
 function sheetLink(label,name){
+ const editable=['Employees','EmployeeQualifications','EmployeePreferences','AllowedShifts','EmployeeAvailability','RecurringAvailability','ForcedShifts','組合優先設定','班別優先人員','LeaveRequests','個人假日設定','DailyShiftDemands','ShiftDefinitions','CalendarDates','排班控制','AssignmentLocks'];
+ if(editable.includes(name)){const b=document.createElement('button');b.type='button';b.className='action secondary';b.textContent=label+' →';b.addEventListener('click',()=>window.openSheetEditor?window.openSheetEditor(name,sheetUrl):alert('編輯元件尚未載入，請重新整理。'));return b;}
  const a=document.createElement('a');a.className='action secondary';a.textContent=label+' ↗';a.href=sheetHref(name);a.target='_blank';a.rel='noopener noreferrer';return a;
 }
 const content={
  new:{title:'召喚醫者',description:'締結新的輪值契約。在員工名冊填寫姓名、任職類型與工時條件；資格與可排班別可接著設定。',links:[['新增／編輯員工名冊','Employees'],['資格與技能','EmployeeQualifications'],['允許班別','AllowedShifts']]},
- roles:{title:'英靈編成',description:'為每位醫者設定出勤條件。請在試算表對應分頁修改，保留第一列欄名。',links:[['工時與出勤限制','Employees'],['允許班別','AllowedShifts'],['指定日期可排時段','EmployeeAvailability'],['每週固定可排時段','RecurringAvailability'],['強制班別','ForcedShifts'],['組合優先設定','組合優先設定'],['班別優先人員','班別優先人員'],['請假紀錄','LeaveRequests'],['個人假日設定','個人假日設定']]},
+ roles:{title:'英靈編成',description:'為每位醫者設定出勤條件。在本站選擇條件，核對變更後再上傳。',links:[['工時與出勤限制','Employees'],['允許班別','AllowedShifts'],['偏好班別','EmployeePreferences'],['班次鎖定','AssignmentLocks'],['指定日期可排時段','EmployeeAvailability'],['每週固定可排時段','RecurringAvailability'],['強制班別','ForcedShifts'],['組合優先設定','組合優先設定'],['班別優先人員','班別優先人員'],['請假紀錄','LeaveRequests'],['個人假日設定','個人假日設定']]},
  battle:{title:'啟動命運之輪',description:'前往排班控制設定本次任務，確認每日需求與人數上限，再開啟當月班表。此網站提供試算表入口，尚未執行自動排班。',links:[['開啟排班控制','排班控制'],['每日需求與 MaxStaff','DailyShiftDemands'],['開啟當月班表','Schedule_W1初版'],['統計與檢查規則','統計與檢查規則']]},
  other:{title:'禁忌藏書閣',description:'查閱排班參數、班別與規則。修改實際資料時，由 Google 管理存取權限。',links:[['參數設定索引','參數設定索引'],['系統參數','SystemConfig'],['早午晚班時間','ShiftDefinitions'],['日曆與休診日','CalendarDates'],['政策設定','LegalPolicy'],['使用說明','使用說明']]}
 };
@@ -66,7 +68,7 @@ function renderPanel(name){
  const c=content[name];$('panel-title').textContent=c.title;const area=$('panel-content');area.replaceChildren();
  const p=document.createElement('p');p.textContent=c.description;area.append(p);
  const links=document.createElement('div');links.className='sheet-links';for(const [label,target] of c.links)links.append(sheetLink(label,target));area.append(links);
- const note=document.createElement('p');note.className='hint';note.textContent='在新分頁開啟 Google Sheets；資料直接儲存在試算表，網站不會自動讀取或同步。';area.append(note);
+ const note=document.createElement('p');note.className='hint';note.textContent='可編輯項目會在本站開啟表單。連接 Google 後讀取資料，預覽並確認才寫入試算表；查閱項目另開分頁。';area.append(note);
  if(name==='other'){
   const a=document.createElement('a');a.href='https://github.com/roroo0902/clinic-auto-scheduler';a.textContent='GitHub 原始碼 ↗';a.target='_blank';a.rel='noopener noreferrer';a.className='action secondary';area.append(a);
   const edit=document.createElement('button');edit.className='action secondary';edit.textContent='變更試算表入口';edit.addEventListener('click',setup);area.append(edit);
