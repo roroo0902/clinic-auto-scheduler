@@ -39,7 +39,7 @@ function getMenuSection(section) {
   };
   if (!Object.prototype.hasOwnProperty.call(menus, section)) throw Error('無效的選單。');
   if (section === 'other' && member.role === '管理者') menus.other.tabs.push(ACCESS_TAB, 'SystemConfig');
-  return {title:menus[section].title, links:menus[section].tabs.map(name => ({name, label:FORM_NAMES_[name]||name, url:'https://docs.google.com/spreadsheets/d/'+ACCESS_SHEET_ID+'/edit#range='+encodeURIComponent("'"+name.replace(/'/g,"''")+"'!A1")}))};
+  return {title:menus[section].title, links:menus[section].tabs.map(name => ({name, label:FORM_NAMES_[name]||name, url:'https://docs.google.com/spreadsheets/d/'+ACCESS_SHEET_ID+'/edit#range='+encodeURIComponent("'"+(CHINESE_SHEET_TITLES_[name]||name).replace(/'/g,"''")+"'!A1")}))};
 }
 
 function doGet() {
@@ -54,4 +54,3 @@ function doGet() {
 function escapeHtml_(value) {
   return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-

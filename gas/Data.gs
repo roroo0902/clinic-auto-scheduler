@@ -20,17 +20,17 @@ function formPermission_(name, write) {
 }
 function snapshotForm_(name) {
  const meta=Sheets.Spreadsheets.get(ACCESS_SHEET_ID,{fields:'sheets(properties)'});
- const properties=(meta.sheets||[]).map(s=>s.properties).find(p=>p.title===name);
+ const properties=resolveFormSheet_(name,(meta.sheets||[]).map(s=>s.properties));
  if(!properties)throw Error('找不到資料分頁。');
  const n=Math.min(52,properties.gridProperties.columnCount),end=n<=26?String.fromCharCode(64+n):'A'+String.fromCharCode(64+n-26);
- const result=Sheets.Spreadsheets.get(ACCESS_SHEET_ID,{ranges:["'"+name.replace(/'/g,"''")+"'!A1:"+end+Math.min(1001,properties.gridProperties.rowCount)],includeGridData:true,fields:'sheets(properties,data(rowData(values(userEnteredValue,formattedValue,dataValidation))))'});
- const sheet=(result.sheets||[]).find(s=>s.properties.title===name);
+ const result=Sheets.Spreadsheets.get(ACCESS_SHEET_ID,{ranges:["'"+properties.title.replace(/'/g,"''")+"'!A1:"+end+Math.min(1001,properties.gridProperties.rowCount)],includeGridData:true,fields:'sheets(properties,data(rowData(values(userEnteredValue,formattedValue,dataValidation))))'});
+ const sheet=(result.sheets||[]).find(s=>s.properties.sheetId===properties.sheetId);
  if(!sheet)throw Error('找不到資料分頁。');
  const cells=sheet.data&&sheet.data[0]&&sheet.data[0].rowData||[];
  while(cells.length&&!(cells[cells.length-1].values||[]).some(c=>c.userEnteredValue))cells.pop();
  if(cells.length>1000)throw Error('資料超過網站目前支援的 1000 列，請聯絡管理者。');
  const first=cells[0]&&cells[0].values||[];
- const headers=first.map(c=>String(c.userEnteredValue&&c.userEnteredValue.stringValue||c.formattedValue||''));
+ const headers=canonicalFormHeaders_(name,first.map(c=>String(c.userEnteredValue&&c.userEnteredValue.stringValue||c.formattedValue||'')));
  while(headers.length&&!headers[headers.length-1])headers.pop();
  if(!headers.length||headers.some(h=>!h)||new Set(headers).size!==headers.length)throw Error('欄位名稱空白或重複，無法安全編輯。');
  if(sheet.properties.gridProperties.columnCount>52)throw Error('資料欄位超過網站支援範圍。');
@@ -94,4 +94,35 @@ function saveFormData(input){
   if(!saved||diff.some(d=>saved.cells[d.index].value!==d.value))throw Error('寫入已送出但讀回不符，請重新讀取確認，勿重複上傳。');
   return {ok:true,row:row+1};
  }finally{lock.releaseLock();}
+}
+
+
+// Chinese tab and header aliases keep the existing form API and validation keys stable.
+const CHINESE_SHEET_TITLES_ = {"Schedule_W1初版":"班表初版","SystemConfig":"系統參數","Employees":"員工基本資料","ShiftDefinitions":"班別時間設定","CalendarDates":"日曆設定","DailyShiftDemands":"每日班別人力需求","ShiftQualificationDemands":"班別資格需求","EmployeeQualifications":"員工資格與技能","EmployeePreferences":"員工排班偏好","EmployeeAvailability":"指定日期可排時段","RecurringAvailability":"每週固定可排時段","LeaveRequests":"請假申請","PairingRules":"員工搭班規則","ShiftTransitions":"班別銜接規則","ScheduleVersions":"班表版本紀錄","ScheduleAssignments":"班表排班明細","AssignmentLocks":"排班鎖定設定","SchedulingTasks":"排班任務","TaskCheckpoints":"任務續算紀錄","TaskEvents":"任務事件紀錄","ValidationReports":"驗證報告","ChangeLogs":"變更紀錄","AuditLogs":"操作稽核紀錄","Notifications":"通知紀錄","AlgorithmComparisons":"排班演算法比較","Backups":"備份紀錄","DeploymentHistory":"部署紀錄","ForcedShifts":"指定班別","CrossMonthCoverage":"跨月資料完整性","EmployeeSettingsHistory":"員工設定歷程","LegalPolicy":"法規政策設定","AllowedShifts":"允許班別組合"};
+const CHINESE_FORM_COLUMNS_ = {"SystemConfig":"key,value,type,scope,effectiveFrom,effectiveTo,version,status","Employees":"employeeId,displayName,active,department,employmentType,targetMonthlyHours,minMonthlyRestDays,maxMonthlyWorkDays,maxDailyHours,maxWeeklyHours,maxConsecutiveDays,preferredMinDailyHours,validFrom,validTo,version,maxWeeklyWorkDays,minWeeklyShifts,maxWeeklyShifts,maxMonthlyHours,maxDailyShifts,targetMonthlyWorkDays,minWeeklyHours,minRestHours","ShiftDefinitions":"shiftId,shiftName,startTime,endTime,endDayOffset,unpaidBreakMinutes,breakRules,hoursCalculationPolicy,effectiveFrom,effectiveTo,version","CalendarDates":"date,weekday,isOperatingDay,isNationalHoliday,weekendFlag,holidayType,notes,calendarVersion","DailyShiftDemands":"demandId,date,shiftId,requiredHeadcount,MaxStaff,version,idealHeadcount,isClosed","EmployeeQualifications":"employeeId,qualificationId,qualificationName,roleCategory,verifiedForLegalDuty,verificationSourceRef,verificationAsOf,validFrom,validTo,version","EmployeePreferences":"preferenceId,employeeId,preferenceType,shiftId,dayOfWeek,holidayType,rankOrPreference,validFrom,validTo,version","EmployeeAvailability":"availabilityId,employeeId,date,shiftId,conditionType,isHard,source,approvalStatus,validFrom,validTo,version","RecurringAvailability":"recurringId,employeeId,weekday,shiftId,conditionType,isHard,validFrom,validTo,version","LeaveRequests":"requestId,employeeId,startDate,endDate,requestedShifts,status,reasonRef,reviewedBy,reviewedAt,version","ForcedShifts":"forcedShiftId,employeeId,date,shiftId,source,validFrom,validTo,version","AllowedShifts":"employeeId,combination,allowed,validFrom,validTo,notes","組合優先設定":"employeeId,combination,mode,priority,maxPerWeek,date,validFrom,validTo,notes","班別優先人員":"date,weekday,shiftId,employeeId,priority,allowOutsideList,validFrom,validTo,notes","個人假日設定":"employeeId,date,dayType,schedulePolicy,notes","登入授權名單":"Google 信箱,顯示名稱,角色,啟用,備註"};
+function resolveFormSheet_(name, properties) {
+ const candidates=properties.filter(p=>p.title===name||p.title===CHINESE_SHEET_TITLES_[name]);
+ if(candidates.length!==1)throw Error(candidates.length?'資料分頁名稱重複，請聯絡管理者。':'找不到資料分頁。');
+ return candidates[0];
+}
+function canonicalFormHeaders_(name, headers) {
+ const keys=(CHINESE_FORM_COLUMNS_[name]||'').split(',');
+ const extra={key:'參數代碼',value:'設定值',type:'資料類型',scope:'適用範圍'};
+ return headers.map(header=>{
+  const candidates=keys.filter(key=>key===header||(labels[key]||extra[key])===header);
+  if(candidates.length>1)throw Error('欄位對照不明確，請聯絡管理者。');
+  return candidates[0]||header;
+ });
+}
+
+// Read-only administrator diagnostic; logs counts only, never employee or roster contents.
+function verifyChineseCompatibility() {
+ const member=requireMember_();
+ if(member.role!=='管理者')throw Error('僅限管理者執行。');
+ const names=Object.keys(FORM_NAMES_);
+ for(const name of names){
+  const data=getFormData(name);
+  if(!data.headers.length)throw Error('缺少欄位：'+name);
+ }
+ console.log('中文分頁相容檢查通過：'+names.length+' 個網站資料項目；未修改任何資料。');
 }

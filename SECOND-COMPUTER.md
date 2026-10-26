@@ -24,7 +24,7 @@ GitHub 同步程式，不會同步整段本機對話、瀏覽器登入、Google 
 
 ## 專案現況與接手注意事項
 - 網站：瑞恩幻想錄：輪值之誓。GitHub Pages 由 main 的 /docs 發布登入入口。
-- 正式 Apps Script 部署為第 6 版，Google 登入、受保護名單、中文站內表單、預覽及確認寫入已上線。
+- 正式 Apps Script 部署為第 8 版（中文分頁與欄位相容），Google 登入、受保護名單、中文站內表單、預覽及確認寫入已上線。
 - Google OAuth 使用 userinfo.email 與 spreadsheets；USER_ACCESSING 執行。每次後端請求檢查名單與角色，仍受 Google Sheets 權限限制。
 - 已實測管理者備註寫入及讀回確認；17 項授權與表單測試通過。其他真人帳號尚未實測。
 - 原始碼與部署細節見 gas/README.md。實際員工資料不得提交到公開 GitHub。
@@ -38,3 +38,6 @@ GitHub 同步程式，不會同步整段本機對話、瀏覽器登入、Google 
 
 ## 貼給另一台 ChatGPT 的交接文字
 請接續維護 roroo0902/clinic-auto-scheduler。先讀 SECOND-COMPUTER.md 與 gas/README.md，確認 GitHub 最新版本及實際 GAS 部署，再開始修改。保留 Google 登入、受保護授權名單、站內表單預覽及確認寫入；真實資料只留在 Google Sheets。不要將程式已推送視為 GAS 已部署，也不要宣稱自動排班已完成。先告訴我目前讀到的版本與尚待處理項目。
+
+## 中文工作表相容
+正式試算表已採繁體中文分頁及第 1 列標題。Data.gs 的 CHINESE_SHEET_TITLES_、CHINESE_FORM_COLUMNS_ 維持原網站內部鍵與驗證，不可刪除對照後直接依英文名稱尋找分頁。此次共改 32 個分頁名稱、341 個標題；保留已是中文的名稱及所有資料。
