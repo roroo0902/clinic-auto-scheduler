@@ -9,3 +9,6 @@ test('clearing a value remains an explicit changed cell',()=>{assert.deepEqual(c
 
 import {nextEmployeeId} from '../docs/editor-model.js';
 test('employee IDs advance beyond existing IDs, including placeholders and gaps',()=>{assert.equal(nextEmployeeId([]),'EMP001');assert.equal(nextEmployeeId(['EMP001','EMP010','EMP003','custom']),'EMP011');assert.equal(nextEmployeeId(['EMP999']),'EMP1000');assert.equal(nextEmployeeId(['EMP011','EMP010']),'EMP012');});
+
+import {employeeOptionLabels} from '../docs/editor-model.js';
+test('employee dropdown uses displayName with reordered columns and disambiguates duplicates',()=>{assert.deepEqual(employeeOptionLabels(['displayName','employeeId'],[['甲','EMP001'],['乙','EMP002'],['乙','EMP003'],['','EMP004']]),['甲','乙（EMP002）','乙（EMP003）','待命名醫者（EMP004）']);});

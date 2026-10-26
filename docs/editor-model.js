@@ -12,3 +12,5 @@ export function changes(headers,before,after){return headers.flatMap((key,i)=>(b
 export function updateRequests(sheetId,rowIndex,diff){return diff.map(d=>({updateCells:{start:{sheetId,rowIndex,columnIndex:d.index},rows:[{values:[cellValue(d.after)]}],fields:'userEnteredValue'}}));}
 
 export function nextEmployeeId(ids){const max=ids.reduce((n,id)=>{const m=/^EMP(\d+)$/.exec(String(id));return m?Math.max(n,Number(m[1])):n;},0);if(!Number.isSafeInteger(max+1))throw Error('員工代碼超出可用範圍');return 'EMP'+String(max+1).padStart(3,'0');}
+
+export function employeeOptionLabels(headers,rows){const ni=headers.indexOf('displayName'),ii=headers.indexOf('employeeId');const names=rows.map(r=>String(r[ni]??'').trim());return rows.map((r,i)=>{const name=names[i],id=String(r[ii]??'').trim();return name?(names.filter(n=>n===name).length>1?name+'（'+(id||'未編號')+'）':name):'待命名醫者'+(id?'（'+id+'）':'');});}
