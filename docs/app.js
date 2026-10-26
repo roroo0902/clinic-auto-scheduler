@@ -83,36 +83,3 @@ $('config-form').addEventListener('submit',e=>{
  if(saved)$('config').close();else $('config-error').textContent='瀏覽器無法保存設定，本次仍可使用入口。';
 });
 updateStatus();
-
-// Pan only the decorative background; never intercept links, forms or vertical scroll.
-const sceneSlider=$('scene-position');
-const sceneKey='ryan-background-position-v1';
-let scenePosition=67;
-function setScenePosition(value){
- const numeric=Number(value);scenePosition=Number.isFinite(numeric)?Math.max(0,Math.min(100,numeric)):67;
- document.documentElement.style.setProperty('--scene-x',scenePosition+'%');
- sceneSlider.value=String(Math.round(scenePosition));
- sceneSlider.setAttribute('aria-valuetext',Math.round(scenePosition)+'%，左端城堡至右端長劍');
-}
-function saveScenePosition(){try{localStorage.setItem(sceneKey,String(scenePosition));}catch{}}
-try{const saved=localStorage.getItem(sceneKey);if(saved!==null)scenePosition=Number(saved);}catch{}
-setScenePosition(scenePosition);
-sceneSlider.addEventListener('input',()=>setScenePosition(sceneSlider.value));
-sceneSlider.addEventListener('change',saveScenePosition);
-$('scene-reset').addEventListener('click',()=>{setScenePosition(67);saveScenePosition();});
-const sceneSurface=document.querySelector('main');
-let sceneGesture=null;
-sceneSurface.addEventListener('pointerdown',e=>{
- if(!matchMedia('(max-width:900px)').matches||!e.isPrimary||e.button!==0||e.target.closest('a,button,input,label,dialog,.scene-control'))return;
- sceneGesture={id:e.pointerId,x:e.clientX,y:e.clientY,start:scenePosition,axis:null};
-});
-sceneSurface.addEventListener('pointermove',e=>{
- const g=sceneGesture;if(!g||g.id!==e.pointerId)return;
- const dx=e.clientX-g.x,dy=e.clientY-g.y;
- if(!g.axis){if(Math.max(Math.abs(dx),Math.abs(dy))<10)return;if(Math.abs(dy)>=Math.abs(dx)){sceneGesture=null;return;}g.axis='horizontal';sceneSurface.setPointerCapture(e.pointerId);}
- setScenePosition(g.start-dx/Math.max(sceneSurface.clientWidth,1)*100);
-});
-function finishSceneGesture(e){if(sceneGesture?.id===e.pointerId){saveScenePosition();sceneGesture=null;}}
-sceneSurface.addEventListener('pointerup',finishSceneGesture);
-sceneSurface.addEventListener('pointercancel',finishSceneGesture);
-sceneSurface.addEventListener('lostpointercapture',finishSceneGesture);
