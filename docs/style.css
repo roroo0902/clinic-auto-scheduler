@@ -18,3 +18,18 @@ input{background:#160e20}
  .world{background-position:66% center}
  .world:after{background:linear-gradient(90deg,#140b20d9,#170b23a6),linear-gradient(0deg,#140b20cc,transparent)}
 }
+
+/* Softer atmospheric depth, with separate foreground mist. */
+body{background:#29313e}
+.world{background-image:url("fantasy-hero-soft.png")}
+.world:after{background:linear-gradient(90deg,rgba(28,34,47,.76),rgba(32,37,49,.38) 37%,rgba(36,40,50,.04) 70%),linear-gradient(0deg,rgba(29,35,46,.36),transparent 38%)}
+.world:before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 78% 12%,rgba(238,221,197,.13),transparent 43%),linear-gradient(0deg,rgba(167,184,203,.12),transparent 26%)}
+header,footer{background:rgba(29,35,46,.28)}
+.menu button{background:linear-gradient(115deg,rgba(69,76,91,.80),rgba(47,53,69,.70));border-color:rgba(210,199,182,.46);box-shadow:0 7px 20px #141b2826,inset 0 1px 0 #f8eedc1a}
+.menu button:hover{background:rgba(85,91,107,.88);border-color:#d9c9aa;transform:translateX(3px)}
+.menu .primary{background:linear-gradient(115deg,rgba(116,91,88,.84),rgba(68,63,78,.78));border-color:#c8b595}
+.quiet{background:rgba(51,58,73,.65);border-color:#b8ac98}
+.intro,.menu small{color:#d2d6df}
+dialog{background:#303746}
+input{background:#252d3b}
+@media(max-width:760px){.world:after{background:linear-gradient(90deg,rgba(30,36,49,.83),rgba(34,40,52,.61)),linear-gradient(0deg,rgba(36,43,56,.5),transparent)}}
