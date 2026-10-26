@@ -13,6 +13,7 @@ function stableFormJson_(value) {
 }
 function formPermission_(name, write) {
  const member=requireMember_();
+ if(write&&member.role!=='管理者')throw Error('僅管理者可以修改設定；員工可查閱個人與整體班表。');
  if(!Object.prototype.hasOwnProperty.call(FORM_NAMES_,name)) throw Error('不支援的資料項目。');
  if(['登入授權名單','SystemConfig','統計與檢查規則','排班控制'].includes(name)&&member.role!=='管理者') throw Error('此項目僅限管理者使用。');
  if(write&&READONLY_FORMS_.includes(name))throw Error('此頁為查閱資料，不能上傳修改。');

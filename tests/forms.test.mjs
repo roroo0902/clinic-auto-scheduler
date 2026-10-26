@@ -7,6 +7,7 @@ function setup(name='Employees',headers=['employeeId','displayName','active'],va
  vm.createContext(ctx);vm.runInContext(code,ctx);return {ctx,cells,get writes(){return writes;},role:v=>role=v,revoke:()=>revoked=true,request:(row,values)=>({name,row,values,fingerprint:ctx.getFormData(name).fingerprint})};
 }
 test('edit and append persist typed values and read back',()=>{const s=setup();assert.equal(s.ctx.saveFormData(s.request(1,['EMP001','Anne',false])).row,2);assert.equal(s.ctx.saveFormData(s.request(-1,['EMP002','Bob',true])).row,3);assert.equal(s.writes,2);});
+test('ordinary employee cannot edit underlying staff records',()=>{const s=setup(),request=s.request(1,['EMP001','Changed',true]);s.role('一般使用者');assert.throws(()=>s.ctx.saveFormData(request));assert.equal(s.writes,0);});
 test('revoked user cannot save an earlier preview',()=>{const s=setup(),r=s.request(1,['EMP001','Anne',true]);s.revoke();assert.throws(()=>s.ctx.saveFormData(r));assert.equal(s.writes,0);});
 test('stale preview or replay never writes',()=>{const s=setup(),r=s.request(-1,['EMP002','Bob',true]);s.ctx.saveFormData(r);assert.throws(()=>s.ctx.saveFormData(r));assert.equal(s.writes,1);});
 test('duplicate IDs and key edits are refused',()=>{const s=setup();assert.throws(()=>s.ctx.saveFormData(s.request(-1,['EMP001','Bob',true])));assert.throws(()=>s.ctx.saveFormData(s.request(1,['EMP003','Amy',true])));assert.equal(s.writes,0);});

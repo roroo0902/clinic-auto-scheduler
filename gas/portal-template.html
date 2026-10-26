@@ -4,14 +4,15 @@
 <header><a class="brand" href="./">✧ 瑞恩幻想錄 <small>瑞恩中醫診所排班系統</small></a><button class="quiet" id="settings">試算表設定</button></header>
 <main><section class="hero"><div class="eyebrow">RYAN CHRONICLES · OATH OF DUTY</div><h1>瑞恩幻想錄<br>輪值之誓</h1><p class="intro">以岐黃為誓，以仁心為刃——<br>今夜，由誰守護瑞恩？</p><div class="chapter"><span>第一章</span>2026 年 11 月 · 早・午・晚三班</div>
 <nav class="menu" aria-label="主選單">
+<button data-schedule="personal"><span class="icon">▦</span><span><strong>我的班表</strong><small>個人月曆、班別與工時</small></span><span class="arrow">→</span></button>
+<button data-schedule="all"><span class="icon">☷</span><span><strong>整體班表</strong><small>全體員工月班表與班別登錄</small></span><span class="arrow">→</span></button>
 <button data-panel="new"><span class="icon">＋</span><span><strong>召喚醫者</strong><small>建立員工基本資料</small></span><span class="arrow">↗</span></button>
 <button data-panel="roles"><span class="icon">♙</span><span><strong>英靈編成</strong><small>工時、休假與班別條件</small></span><span class="arrow">↗</span></button>
 <button data-panel="battle" class="primary"><span class="icon">⚔</span><span><strong>啟動命運之輪</strong><small>排班控制與當月班表</small></span><span class="arrow">→</span></button>
 <button data-panel="other"><span class="icon">◇</span><span><strong>禁忌藏書閣</strong><small>參數索引、規則與使用說明</small></span><span class="arrow">＋</span></button>
-</nav><p class="status">● 資料準備階段 · 自動排班尚未啟用</p></section>
+</nav><p class="status">● 班表查閱與人工登錄 · 自動排班尚未啟用</p></section>
 <aside><span>DAWN CITADEL</span><h2>晨曦之城</h2><p>讓每一班，都有合適的夥伴。</p><div class="shifts"><span>A<b>08:00–12:00</b></span><span>B<b>14:30–18:30</b></span><span>C<b>18:30–21:30</b></span></div></aside></main>
 <footer><span>瑞恩中醫診所 · 輪值之誓</span><span id="connection">瑞恩排班試算表 · Google 權限控管</span></footer>
 <dialog id="panel" aria-labelledby="panel-title"><button class="close" aria-label="關閉">×</button><div class="eyebrow">ADVENTURE JOURNAL</div><h2 id="panel-title"></h2><div id="panel-content"></div></dialog>
 <dialog id="config" aria-labelledby="config-title"><button class="close" aria-label="關閉">×</button><h2 id="config-title">私人試算表入口</h2><p>已預設瑞恩排班試算表。自訂入口只儲存在此瀏覽器，開啟仍需 Google 存取權限。</p><form id="config-form"><label for="sheet-url">Google Sheets 網址</label><input id="sheet-url" type="url" required placeholder="https://docs.google.com/spreadsheets/d/…/edit"><p class="hint">此網址也是表單上傳的目的地。表單內連接 Google 後，預覽並確認才會寫入。</p><p id="config-error" role="alert"></p><button class="action" type="submit">儲存入口</button></form></dialog>
 <noscript><p>請啟用 JavaScript 使用主選單，或至 <a href="https://github.com/roroo0902/clinic-auto-scheduler">GitHub 查看範本</a>。</p></noscript><script src="app.js?v=20261026-editor1"></script><script src="google-config.js?v=20261026-editor1"></script><script src="https://accounts.google.com/gsi/client" async defer></script><script type="module" src="editor.js?v=20261026-editor1"></script></body></html>
-
