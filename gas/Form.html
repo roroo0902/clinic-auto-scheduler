@@ -1,0 +1,73 @@
+<style>
+#web-form{width:min(1000px,94vw);max-height:90dvh;overflow:auto;border:1px solid #c8ad73;border-radius:18px;background:#202b3b;color:#f1ead9;padding:28px}#web-form::backdrop{background:#050b16cc}#web-form h2,#web-form h3{font-family:'Noto Serif TC',serif;color:#e9cb91}#web-form input,#web-form select{font:16px/1.5 system-ui;padding:10px;width:100%;box-sizing:border-box;background:#152132;color:#fff;border:1px solid #8496ad;border-radius:6px}#web-form label{display:block}#web-form input[type=checkbox]{width:auto}#web-form .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#web-form label>span{display:block;margin-bottom:7px}#web-form .bar{display:flex;flex-wrap:wrap;gap:12px;margin:18px 0}#web-form .bar select{flex:1;min-width:180px}#web-form .hint{color:#bac6d6;font-size:13px;line-height:1.7}#form-status{white-space:pre-wrap;padding:12px;border-left:2px solid #ceb078;color:#f5d797}#web-form table{border-collapse:collapse;width:100%;font-size:14px}#web-form td,#web-form th{border:1px solid #708297;padding:10px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere}#web-form .scroll-table{overflow:auto;max-height:52vh}#web-form button:disabled{opacity:.5}#web-form .close{position:sticky;float:right;top:0}#web-form .bar .action{min-height:44px}@media(max-width:650px){#web-form{padding:20px 14px}#web-form .fields{grid-template-columns:1fr}#web-form .bar .action{width:100%}}
+</style>
+<dialog id="web-form" aria-labelledby="form-title"><button class="close" type="button" aria-label="關閉表單">×</button><div class="eyebrow">GUILD REGISTER</div><h2 id="form-title"></h2><p>填寫資料 → 預覽變更 → 確認寫入試算表</p><p id="form-status" role="status"></p><div id="form-body"></div></dialog>
+<script>
+// MODEL_INSERT
+const formDialog=document.getElementById('web-form'),formBody=document.getElementById('form-body');
+let formData=null,formBusy=false,formDirty=false,formDraft=null,formGeneration=0;
+const formEl=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
+const formStatus=t=>document.getElementById('form-status').textContent=t;
+function formButton(label,fn){const b=formEl('button',label);b.type='button';b.className='action secondary';b.addEventListener('click',fn);return b;}
+function formClose(){if(formBusy)return;if(formDirty&&!confirm('還有未上傳的草稿，確定關閉？'))return;formGeneration++;formDirty=false;formDraft=null;formDialog.close();}
+formDialog.querySelector('.close').addEventListener('click',formClose);formDialog.addEventListener('cancel',e=>{e.preventDefault();formClose();});
+window.addEventListener('beforeunload',e=>{if(formDirty||formBusy){e.preventDefault();e.returnValue='';}});
+function formRpc(method,arg){return new Promise((resolve,reject)=>{const run=google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);if(method==='getFormData')run.getFormData(arg);else run.saveFormData(arg);});}
+async function openWebForm(name){
+ if(formBusy)return;document.getElementById('panel').close();formDialog.showModal();formBody.replaceChildren();document.getElementById('form-title').textContent='讀取資料中…';formData=null;formDirty=false;formDraft=null;
+ await formLoad(name);
+}
+async function formLoad(name){
+ const gen=++formGeneration;formBusy=true;formStatus('正在確認登入權限並讀取現有資料…');
+ try{const data=await formRpc('getFormData',name);if(gen!==formGeneration)return;formData=data;document.getElementById('form-title').textContent=data.title;formList();formStatus(data.readOnly?'此頁提供網站內查閱。':'資料已讀取；確認上傳前的修改只保留在此頁。');}
+ catch(e){formStatus(e.message||'讀取失敗，請重新登入後再試。');formBody.replaceChildren(formButton('重新讀取',()=>formLoad(name)));}
+ finally{formBusy=false;}
+}
+function formTable(headers,rows){const wrap=formEl('div');wrap.className='scroll-table';const table=formEl('table'),head=formEl('tr');headers.forEach(h=>head.append(formEl('th',labels[h]||h)));table.append(head);rows.forEach(values=>{const tr=formEl('tr');values.forEach(v=>tr.append(formEl('td',String(v))));table.append(tr);});wrap.append(table);return wrap;}
+function formList(){
+ formDirty=false;formDraft=null;formBody.replaceChildren();
+ const visible=formData.rows.filter(r=>r.cells.some(c=>c.value!==''||c.formula));
+ if(formData.readOnly){formBody.append(formTable(formData.headers,visible.map(r=>r.cells.map(c=>c.display||c.value))));return;}
+ const bar=formEl('div');bar.className='bar';const select=formEl('select');select.setAttribute('aria-label','選擇現有資料');select.append(new Option('選擇要修改的資料',''));
+ visible.forEach(r=>select.append(new Option(r.cells.slice(0,4).map(c=>c.display||c.value).join(' · '),String(r.row))));
+ select.addEventListener('change',()=>{if(formDirty&&!confirm('切換會清除未上傳草稿，確定切換？'))return;if(select.value)formFields(Number(select.value));});
+ bar.append(select,formButton('新增一筆',()=>{if(formDirty&&!confirm('清除草稿並新增？'))return;formFields(-1);}),formButton('重新讀取',()=>{if(formDirty&&!confirm('捨棄草稿並重新讀取？'))return;formLoad(formData.name);}));formBody.append(bar);const holder=formEl('div');holder.id='form-fields';formBody.append(holder);
+ if(!visible.length)formFields(-1);
+}
+function formFields(row,draft){
+ const data=formData,record=data.rows.find(r=>r.row===row),before=record?record.cells.map(c=>c.value):data.headers.map(()=>'');
+ if(row<0&&data.name==='Employees'&&!draft)before[0]=nextEmployeeId(data.rows.map(r=>r.cells[0].value));
+ const holder=document.getElementById('form-fields');holder.replaceChildren();const form=formEl('form'),grid=formEl('div');grid.className='fields';const controls=[];
+ data.headers.forEach((key,i)=>{
+  const cell=record?record.cells[i]:data.rows[0]&&data.rows[0].cells[i],condition=cell&&cell.validation&&cell.validation.condition;
+  const value=draft?draft[i]:before[i],isBool=booleans.has(key)||condition&&condition.type==='BOOLEAN'||typeof value==='boolean';
+  const opts=condition&&condition.type==='ONE_OF_LIST'?condition.values.map(x=>x.userEnteredValue):choices[key];
+  const label=formEl('label');label.append(formEl('span',labels[key]||key));let input;
+  if(isBool||opts){input=formEl('select');input.append(new Option('未設定',''));for(const v of isBool?['true','false']:opts)input.append(new Option(isBool?(v==='true'?'是／啟用':'否／停用'):(choiceLabels[v]||v),v));}
+  else{input=formEl('input');input.type=isNumber(key)||typeof value==='number'?'number':isDate(key)&&typeof value!=='number'?'date':'text';input.maxLength=4000;if(input.type==='number')input.step='any';}
+  input.value=String(value);if(input.tagName==='SELECT'&&value!==''&&input.value==='')input.append(new Option(String(value),String(value),true,true));
+  input.dataset.boolean=String(!!isBool);input.id='input-'+i;label.htmlFor=input.id;
+  if(cell&&cell.formula){input.disabled=true;input.value=cell.display;label.append(formEl('small','公式欄位保留'))};if(row>=0&&i===0)input.disabled=true;
+  input.addEventListener('input',()=>formDirty=true);label.append(input);grid.append(label);controls.push(input);
+ });
+ formDirty=!!draft;form.append(grid);const bar=formEl('div');bar.className='bar';const preview=formEl('button','預覽變更');preview.className='action';preview.type='submit';bar.append(preview);form.append(bar);
+ form.addEventListener('submit',e=>{e.preventDefault();try{
+  const values=controls.map((c,i)=>c.disabled?before[i]:c.value===''?'':c.dataset.boolean==='true'?c.value==='true':c.type==='number'?Number(c.value):parseInput(data.headers[i],c.value));
+  validateRecord(data.headers,values,data.name);formPreview(row,before,values);
+ }catch(err){formStatus(err.message);}});holder.append(form);
+}
+function formPreview(row,before,values){
+ const diffs=changes(formData.headers,row<0?formData.headers.map(()=>''):before,values);if(!diffs.length){formStatus('沒有變更需要上傳。');return;}
+ formDirty=true;formDraft={row,values};const holder=document.getElementById('form-fields');holder.replaceChildren(formEl('h3','確認寫入內容'),formEl('p',formData.title+' · '+(row<0?'新增資料':'修改第 '+(row+1)+' 列')));
+ holder.append(formTable(['欄位','原本','修改後'],diffs.map(d=>[labels[d.key]||d.key,String(d.before),String(d.after)])));
+ const check=formEl('input');check.type='checkbox';const label=formEl('label');label.append(check,document.createTextNode('我已核對內容，確認寫入 Google Sheets。'));holder.append(label);
+ const bar=formEl('div');bar.className='bar';const save=formButton('確認並寫入試算表',()=>formSave(row,values));save.disabled=true;check.addEventListener('change',()=>save.disabled=!check.checked);bar.append(formButton('返回修改',()=>formFields(row,values)),save);holder.append(bar);formStatus('尚未寫入試算表。請確認上方差異。');
+}
+async function formSave(row,values){
+ if(formBusy)return;formBusy=true;formDialog.querySelectorAll('button,input,select').forEach(e=>e.disabled=true);formStatus('正在檢查最新資料並寫入，請勿關閉…');
+ try{const result=await formRpc('saveFormData',{name:formData.name,row,values,fingerprint:formData.fingerprint});formDirty=false;formDraft=null;await formLoad(formData.name);formStatus('已成功寫入第 '+result.row+' 列，並從 Google Sheets 讀回確認。');}
+ catch(e){formStatus((e.message||'儲存失敗')+'\n請先重新讀取確認結果，不要直接重複送出。草稿仍保留。');const bar=formEl('div');bar.className='bar';bar.append(formButton('返回草稿',()=>formFields(row,values)),formButton('確認後重新讀取',()=>{if(confirm('重新讀取會清除草稿。請先記下修改內容。'))formLoad(formData.name);}));document.getElementById('form-fields').append(bar);}
+ finally{formBusy=false;formDialog.querySelector('.close').disabled=false;}
+}
+</script>
+
