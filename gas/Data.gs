@@ -6,6 +6,11 @@ const FORM_NAMES_ = {
  參數設定索引:'參數設定索引',使用說明:'使用說明',ShiftDefinitions:'早午晚班時間',CalendarDates:'日曆與休診日',登入授權名單:'登入授權名單',SystemConfig:'系統參數'
 };
 const READONLY_FORMS_ = ['Schedule_W1初版','參數設定索引','使用說明'];
+function stableFormJson_(value) {
+ if(Array.isArray(value))return '['+value.map(stableFormJson_).join(',')+']';
+ if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(k=>JSON.stringify(k)+':'+stableFormJson_(value[k])).join(',')+'}';
+ return JSON.stringify(value);
+}
 function formPermission_(name, write) {
  const member=requireMember_();
  if(!Object.prototype.hasOwnProperty.call(FORM_NAMES_,name)) throw Error('不支援的資料項目。');
@@ -29,7 +34,7 @@ function snapshotForm_(name) {
  while(headers.length&&!headers[headers.length-1])headers.pop();
  if(!headers.length||headers.some(h=>!h)||new Set(headers).size!==headers.length)throw Error('欄位名稱空白或重複，無法安全編輯。');
  if(sheet.properties.gridProperties.columnCount>52)throw Error('資料欄位超過網站支援範圍。');
- const fingerprint=Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,JSON.stringify(cells)));
+ const fingerprint=Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,stableFormJson_(cells)));
  const rows=cells.slice(1).map((r,i)=>({row:i+1,cells:headers.map((_,j)=>{
   const c=(r.values||[])[j]||{},u=c.userEnteredValue||{};
   return {value:u.stringValue!==undefined?u.stringValue:u.numberValue!==undefined?u.numberValue:u.boolValue!==undefined?u.boolValue:'',display:c.formattedValue||'',formula:!!u.formulaValue,validation:c.dataValidation||null};
@@ -90,4 +95,3 @@ function saveFormData(input){
   return {ok:true,row:row+1};
  }finally{lock.releaseLock();}
 }
-
