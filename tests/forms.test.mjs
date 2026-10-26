@@ -15,4 +15,4 @@ test('formula fields and native dropdown validation enforced server side',()=>{c
 test('admin-only settings and unsupported destinations are denied',()=>{const s=setup('SystemConfig',['key','value'],[['year','2026']]);s.role('一般使用者');assert.throws(()=>s.ctx.getFormData('SystemConfig'));assert.throws(()=>s.ctx.getFormData('Unknown'));});
 test('read-only output cannot be written',()=>{const s=setup('Schedule_W1初版',['date','shiftId'],[['2026-11-01','A']]);assert.throws(()=>s.ctx.saveFormData(s.request(1,['2026-11-01','B'])));assert.equal(s.writes,0);});
 test('maximum staffing checked on the server',()=>{const s=setup('DailyShiftDemands',['demandId','date','shiftId','requiredHeadcount','MaxStaff'],[['D1','2026-11-01','A',2,3]]);assert.throws(()=>s.ctx.saveFormData(s.request(1,['D1','2026-11-01','A',4,3])));assert.equal(s.writes,0);});
-
+test('API object property order does not cause a false stale-data conflict',()=>{const s=setup(),r=s.request(1,['EMP001','Anne',true]);for(const row of s.cells)row.values=row.values.map(c=>({formattedValue:c.formattedValue,userEnteredValue:c.userEnteredValue}));assert.equal(s.ctx.saveFormData(r).ok,true);});
