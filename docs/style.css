@@ -42,3 +42,27 @@ header{flex-wrap:wrap}
 .brand{line-height:1.5}
 .hero h1{font-size:clamp(32px,3.2vw,47px)}
 @media(max-width:760px){.brand{font-size:18px;letter-spacing:1px}.brand small{display:block;font-size:10px;margin-left:23px}.hero h1{font-size:32px}}
+
+/* Classical Traditional Chinese display type with readable supporting text. */
+:root{--font-display:"Noto Serif TC","PMingLiU","Songti TC",serif;--font-body:"Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{font-family:var(--font-body);font-weight:400;-webkit-font-smoothing:antialiased}
+.brand{font-family:var(--font-display);font-size:23px;font-weight:600;letter-spacing:.13em}
+.brand small{font-family:var(--font-body);font-weight:400;font-size:11px;letter-spacing:.1em}
+.hero h1{font-family:var(--font-display);font-size:clamp(38px,3.8vw,54px);font-weight:700;line-height:1.42;letter-spacing:.13em;color:#f2e7d3;text-shadow:0 2px 16px #0e19264d;margin:18px 0 20px}
+.eyebrow{font-family:var(--font-body);font-size:10px;font-weight:500;letter-spacing:.26em}
+.intro{font-family:var(--font-display);font-size:15px;font-weight:500;line-height:2;letter-spacing:.05em;color:#e0e1df}
+.menu strong{font-family:var(--font-display);font-size:21px;font-weight:600;line-height:1.5;letter-spacing:.15em}
+.menu small{font-family:var(--font-body);font-size:11px;font-weight:400;line-height:1.7;letter-spacing:.06em;margin-top:3px}
+.chapter{font-size:12px;letter-spacing:.04em}
+.chapter>span{font-family:var(--font-display);font-weight:600}
+dialog h2{font-family:var(--font-display);font-size:26px;font-weight:600;letter-spacing:.1em}
+dialog p,dialog li{line-height:1.9}
+.sheet-links .action{font-family:var(--font-body);font-weight:500;letter-spacing:.03em}
+.status,footer{font-size:11px;letter-spacing:.04em}
+@media(max-width:760px){
+ .brand{font-size:19px;letter-spacing:.08em}
+ .brand small{font-size:10px;letter-spacing:.05em}
+ .hero h1{font-size:38px;letter-spacing:.1em}
+ .intro{font-size:14px}
+ .menu strong{font-size:20px;letter-spacing:.1em}
+}
