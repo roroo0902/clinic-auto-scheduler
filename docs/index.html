@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>晨曦之約｜診所排班冒險</title><link rel="stylesheet" href="style.css?v=20261026-soft2"></head>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>瑞恩幻想錄：輪值之誓｜瑞恩中醫診所排班系統</title><link rel="stylesheet" href="style.css?v=20261026-oath1"></head>
 <body><div class="world" aria-hidden="true"><div class="moon"></div><svg viewBox="0 0 1600 800" preserveAspectRatio="xMidYMax slice"><path fill="#40566e" opacity=".5" d="M0 460L170 280 250 350 410 180 570 420 710 270 850 400 1050 130 1260 390 1450 200 1600 320V800H0Z"/><path fill="#254254" d="M0 570L270 390 420 490 610 390 830 570 1000 430 1170 490 1360 330 1600 530V800H0Z"/><g fill="#132b3d" stroke="#67858d" stroke-width="2"><path d="M870 550V390h30v-55l25-35 25 35v55h40v-85l30-45 30 45v85h40v-55l25-35 25 35v55h30v160Z"/><path d="M1020 260v-65l66 15-66 20" fill="#bcb09a"/></g><g fill="#e0bc70"><path d="M917 397h13v24h-13zm96-62h14v26h-14zm96 62h13v24h-13z"/><path d="M998 550v-60q22-40 44 0v60Z"/></g><path fill="#0c202e" d="M0 680Q300 560 630 680T1100 650Q1350 510 1600 640V800H0Z"/><path fill="none" stroke="#937e5a" opacity=".35" stroke-width="32" d="M1018 550Q900 625 1100 650T1190 800"/></svg></div>
-<header><a class="brand" href="./">✧ 晨曦之約 <small>診所排班冒險</small></a><button class="quiet" id="settings">試算表設定</button></header>
-<main><section class="hero"><div class="eyebrow">CHRONICLES OF THE DAWN</div><h1>每一位夥伴，<br>都是重要的戰力。</h1><p class="intro">召集夥伴，整理出勤條件。<br>從這裡，準備下一個月的冒險。</p><div class="chapter"><span>第一章</span>2026 年 11 月 · 早・午・晚三班</div>
+<header><a class="brand" href="./">✧ 瑞恩幻想錄 <small>瑞恩中醫診所排班系統</small></a><button class="quiet" id="settings">試算表設定</button></header>
+<main><section class="hero"><div class="eyebrow">RYAN CHRONICLES · OATH OF DUTY</div><h1>瑞恩幻想錄<br>輪值之誓</h1><p class="intro">以岐黃為誓，以仁心為刃——<br>今夜，由誰守護瑞恩？</p><div class="chapter"><span>第一章</span>2026 年 11 月 · 早・午・晚三班</div>
 <nav class="menu" aria-label="主選單">
-<button data-panel="new"><span class="icon">＋</span><span><strong>新增角色</strong><small>建立員工基本資料</small></span><span class="arrow">↗</span></button>
-<button data-panel="roles"><span class="icon">♙</span><span><strong>角色設定</strong><small>工時、休假與班別條件</small></span><span class="arrow">↗</span></button>
-<button data-panel="battle" class="primary"><span class="icon">⚔</span><span><strong>開始開戰</strong><small>準備當月排班</small></span><span class="arrow">→</span></button>
-<button data-panel="other"><span class="icon">◇</span><span><strong>其他</strong><small>參數、使用說明與原始碼</small></span><span class="arrow">＋</span></button>
+<button data-panel="new"><span class="icon">＋</span><span><strong>召喚醫者</strong><small>建立員工基本資料</small></span><span class="arrow">↗</span></button>
+<button data-panel="roles"><span class="icon">♙</span><span><strong>英靈編成</strong><small>工時、休假與班別條件</small></span><span class="arrow">↗</span></button>
+<button data-panel="battle" class="primary"><span class="icon">⚔</span><span><strong>啟動命運之輪</strong><small>排班控制與當月班表</small></span><span class="arrow">→</span></button>
+<button data-panel="other"><span class="icon">◇</span><span><strong>禁忌藏書閣</strong><small>參數索引、規則與使用說明</small></span><span class="arrow">＋</span></button>
 </nav><p class="status">● 資料準備階段 · 自動排班尚未啟用</p></section>
 <aside><span>DAWN CITADEL</span><h2>晨曦之城</h2><p>讓每一班，都有合適的夥伴。</p><div class="shifts"><span>A<b>08:00–12:00</b></span><span>B<b>14:30–18:30</b></span><span>C<b>18:30–21:30</b></span></div></aside></main>
-<footer><span>原創奇幻介面 · 2026.11</span><span id="connection">尚未設定私人試算表入口</span></footer>
+<footer><span>瑞恩中醫診所 · 輪值之誓</span><span id="connection">瑞恩排班試算表 · Google 權限控管</span></footer>
 <dialog id="panel" aria-labelledby="panel-title"><button class="close" aria-label="關閉">×</button><div class="eyebrow">ADVENTURE JOURNAL</div><h2 id="panel-title"></h2><div id="panel-content"></div></dialog>
-<dialog id="config" aria-labelledby="config-title"><button class="close" aria-label="關閉">×</button><h2 id="config-title">私人試算表入口</h2><p>設定只保存在此瀏覽器，開啟時仍由 Google 檢查存取權限。</p><form id="config-form"><label for="sheet-url">Google Sheets 網址</label><input id="sheet-url" type="url" required placeholder="https://docs.google.com/spreadsheets/d/…/edit"><p class="hint">這是開啟試算表的捷徑，尚未提供自動同步。</p><p id="config-error" role="alert"></p><button class="action" type="submit">儲存入口</button></form></dialog>
-<noscript><p>請啟用 JavaScript 使用主選單，或至 <a href="https://github.com/roroo0902/clinic-auto-scheduler">GitHub 查看範本</a>。</p></noscript><script src="app.js"></script></body></html>
+<dialog id="config" aria-labelledby="config-title"><button class="close" aria-label="關閉">×</button><h2 id="config-title">私人試算表入口</h2><p>已預設瑞恩排班試算表。自訂入口只儲存在此瀏覽器，開啟仍需 Google 存取權限。</p><form id="config-form"><label for="sheet-url">Google Sheets 網址</label><input id="sheet-url" type="url" required placeholder="https://docs.google.com/spreadsheets/d/…/edit"><p class="hint">這是開啟試算表的捷徑，尚未提供自動同步。</p><p id="config-error" role="alert"></p><button class="action" type="submit">儲存入口</button></form></dialog>
+<noscript><p>請啟用 JavaScript 使用主選單，或至 <a href="https://github.com/roroo0902/clinic-auto-scheduler">GitHub 查看範本</a>。</p></noscript><script src="app.js?v=20261026-oath1"></script></body></html>
