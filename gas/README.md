@@ -1,8 +1,12 @@
-# Google 登入入口（待部署驗證）
+# Google 登入入口（已部署）
 
 此後端使用 Apps Script 的 Google 登入，必須部署為「以存取網頁應用程式的使用者執行」，限定 Google 帳號。每個請求以該使用者的 Google 權限讀取「登入授權名單」，不接收密碼、不接收前端提供的信箱、不回傳 OAuth token。
 
 部署 Access.gs、Portal.gs、appsscript.json（網頁編輯器也可將前兩者合併為一個 .gs）。使用唯讀試算表及電子郵件 scope。新增版本後設定為 USER_ACCESSING、ANYONE（Google 帳號；不是 ANYONE_ANONYMOUS）。先驗證擁有者可進入、未列名帳號被拒、停用後下一次請求被拒，再將 GitHub Pages 首頁改成登入入口。未驗證部署前不得宣稱登入已啟用。
+
+部署狀態：2026-10-26 已部署第 3 版，已實測擁有者登入與管理選單，公開首頁已改為 Google 登入入口。7 項模擬授權測試通過；其他帳號與停用情境尚未在真人帳號端測試。原有表單編輯器仍需另設 OAuth Client ID，登入入口本身不需要該 Client ID。
+
+登入網址：https://script.google.com/macros/s/AKfycbyuwmhkBqs1A6kk5IkPx0cdso_2eBdrxjyNHzD22ho9cI06mYZMDDbxvyP7iDsMaOmT/exec
 
 正式專案：https://script.google.com/home/projects/1YBSX8SnfzVMyoetC5gwYDTzD81HW4dxbjtc21peNB-rM_VgLOgmdZRXP/edit
 
