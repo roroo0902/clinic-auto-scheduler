@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import fs from 'node:fs';
-const source=fs.readFileSync(new URL('../gas/Access.gs',import.meta.url),'utf8');
+const source=fs.readFileSync(new URL('../gas/Data.gs',import.meta.url),'utf8')+'\n'+fs.readFileSync(new URL('../gas/Access.gs',import.meta.url),'utf8');
 const header=['Google 信箱','顯示名稱','角色','啟用','備註'];
 const member=['member@example.com','Member','一般使用者',true,''];
 function runtime(rows=[header,member],email='member@example.com',effective=email){
