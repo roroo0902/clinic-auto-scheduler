@@ -26,7 +26,8 @@ function getSchedule(input) {
  if(standards[0]?.join('|')!=='年月|本月上班天數|預期上班總時數'||matching.length>1)throw Error('每月工時標準格式不符。');
  const standard=matching.length&&matching[0][1]!=='待同步'&&matching[0][2]!=='待同步'?{workDays:matching[0][1],hours:matching[0][2]}:null;
  if(standard&&(!Number.isInteger(standard.workDays)||standard.workDays<0||standard.workDays>count||typeof standard.hours!=='number'||!Number.isFinite(standard.hours)||standard.hours<0))throw Error('每月工時標準不正確。');
- return {month,view,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
+ const availableMonths=[...new Set([...standards.slice(1),...data.slice(1)].map(r=>r[0]).filter(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)))].sort();
+ return {month,view,availableMonths,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
   const days=Array.from({length:count},(_,i)=>String(r[i+3]||''));
   if(days.some(s=>!['','A','B','C','AB','AC','BC','ABC'].includes(s)))throw Error('班別資料不正確。');
   const hours=days.reduce((n,s)=>n+[...s].reduce((a,c)=>a+({A:4,B:4,C:3}[c]),0),0);
