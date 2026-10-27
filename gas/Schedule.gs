@@ -19,6 +19,11 @@ function getSchedule(input) {
   employeeId=found[0][1];
  }
  const count=new Date(Number(month.slice(0,4)),Number(month.slice(5)),0).getDate();
+ const calculatedWeekdays=Array.from({length:count},(_,i)=>'日一二三四五六'[new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5))-1,i+1)).getUTCDay()]);
+ const weekdayRows=data.slice(1).filter(r=>r[0]==='星期對照'&&r[1]===month);
+ if(weekdayRows.length>1)throw Error('星期對照重複，請聯絡管理者。');
+ const weekdays=weekdayRows.length?Array.from({length:count},(_,i)=>String(weekdayRows[0][i+3]||'')):calculatedWeekdays;
+ if(weekdays.some((w,i)=>w!==calculatedWeekdays[i]))throw Error('Sheet 星期與日期不符，請聯絡管理者。');
  const rows=data.slice(1).filter(r=>r[0]===month&&(view==='all'||r[1]===employeeId));
  if(new Set(rows.map(r=>r[1])).size!==rows.length)throw Error('同月員工班表重複，請聯絡管理者。');
  const standards=scheduleRows_('每月工時標準','C');
@@ -27,7 +32,7 @@ function getSchedule(input) {
  const standard=matching.length&&matching[0][1]!=='待同步'&&matching[0][2]!=='待同步'?{workDays:matching[0][1],hours:matching[0][2]}:null;
  if(standard&&(!Number.isInteger(standard.workDays)||standard.workDays<0||standard.workDays>count||typeof standard.hours!=='number'||!Number.isFinite(standard.hours)||standard.hours<0))throw Error('每月工時標準不正確。');
  const availableMonths=[...new Set([...standards.slice(1),...data.slice(1)].map(r=>r[0]).filter(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)))].sort();
- return {month,view,availableMonths,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
+ return {month,view,weekdays,availableMonths,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
   const days=Array.from({length:count},(_,i)=>String(r[i+3]||''));
   if(days.some(s=>!['','A','B','C','AB','AC','BC','ABC'].includes(s)))throw Error('班別資料不正確。');
   const hours=days.reduce((n,s)=>n+[...s].reduce((a,c)=>a+({A:4,B:4,C:3}[c]),0),0);
