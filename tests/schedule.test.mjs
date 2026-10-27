@@ -20,3 +20,5 @@ test('stale, invalid day and invalid shift never write',()=>{for(const patch of 
 test('clearing a shift recalculates hours without inventing leave',()=>{const r=runtime('管理者');r.ctx.saveScheduleDay({month:'2026-11',employeeId:'EMP001',day:2,before:'AC',shift:''});assert.equal(r.ctx.getSchedule({view:'personal'}).employees[0].hours,0);});
 
 test('monthly standard is separate from actual shifts and missing months stay unset',()=>{const r=runtime();const s=r.ctx.getSchedule({month:'2026-11',view:'all'});assert.equal(s.standard.workDays,21);assert.equal(s.standard.hours,168);assert.equal(s.employees[0].hours,7);assert.equal(s.employees[0].workDays,1);assert.equal(r.ctx.getSchedule({month:'2026-12',view:'all'}).standard,null);});
+
+test("pending calendar does not hide existing schedules or become zero hours",()=>{const r=runtime();const get=r.ctx.Sheets.Spreadsheets.Values.get;r.ctx.Sheets.Spreadsheets.Values.get=(id,range)=>range.includes("每月工時標準")?{values:[["年月","本月上班天數","預期上班總時數"],["2026-11","待同步","待同步"]]}:get(id,range);const result=r.ctx.getSchedule({view:"all"});assert.equal(result.standard,null);assert.equal(result.employees[0].hours,7);});
