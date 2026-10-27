@@ -10,13 +10,21 @@ function getSchedule(input) {
  const data=scheduleRows_('月班表','AJ');
  const expected=['年月','員工代碼','姓名',...Array.from({length:31},(_,i)=>String(i+1)),'總工時','資料狀態'];
  if(!data.length||expected.some((v,i)=>String(data[0][i])!==v)||data.length>1000)throw Error('班表格式不符，請聯絡管理者。');
+ const isAdmin=member.role==='管理者';
+ const monthRows=data.slice(1).filter(r=>r[0]===month);
+ const employeeOptions=isAdmin?monthRows.map(r=>({id:r[1],name:r[2]})):[];
  let employeeId='';
  if(view==='personal'){
   const bindings=scheduleRows_('帳號員工對照','B');
   if(!bindings.length||bindings[0][0]!=='Google 信箱'||bindings[0][1]!=='員工代碼')throw Error('帳號對照格式不符。');
   const found=bindings.slice(1).filter(r=>String(r[0]).trim().toLowerCase()===member.email);
-  if(found.length!==1)throw Error('此帳號尚未對應個人班表，請切換整體班表或聯絡管理者。');
-  employeeId=found[0][1];
+  if(isAdmin){
+   if(input.employeeId&&!employeeOptions.some(e=>e.id===input.employeeId))throw Error('該員工沒有本月份班表，請重新選擇。');
+   employeeId=input.employeeId||(found.length===1&&employeeOptions.some(e=>e.id===found[0][1])?found[0][1]:employeeOptions[0]?.id)||'';
+  }else{
+   if(found.length!==1)throw Error('此帳號尚未對應個人班表，請切換整體班表或聯絡管理者。');
+   employeeId=found[0][1];
+  }
  }
  const count=new Date(Number(month.slice(0,4)),Number(month.slice(5)),0).getDate();
  const calculatedWeekdays=Array.from({length:count},(_,i)=>'日一二三四五六'[new Date(Date.UTC(Number(month.slice(0,4)),Number(month.slice(5))-1,i+1)).getUTCDay()]);
@@ -32,7 +40,7 @@ function getSchedule(input) {
  const standard=matching.length&&matching[0][1]!=='待同步'&&matching[0][2]!=='待同步'?{workDays:matching[0][1],hours:matching[0][2]}:null;
  if(standard&&(!Number.isInteger(standard.workDays)||standard.workDays<0||standard.workDays>count||typeof standard.hours!=='number'||!Number.isFinite(standard.hours)||standard.hours<0))throw Error('每月工時標準不正確。');
  const availableMonths=[...new Set([...standards.slice(1),...data.slice(1)].map(r=>r[0]).filter(m=>/^\d{4}-(0[1-9]|1[0-2])$/.test(m)))].sort();
- return {month,view,weekdays,availableMonths,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
+ return {month,view,employeeOptions,selectedEmployeeId:employeeId,weekdays,availableMonths,dayCount:count,standard,canEdit:member.role==='管理者',employees:rows.map(r=>{
   const days=Array.from({length:count},(_,i)=>String(r[i+3]||''));
   if(days.some(s=>!['','A','B','C','AB','AC','BC','ABC'].includes(s)))throw Error('班別資料不正確。');
   const hours=days.reduce((n,s)=>n+[...s].reduce((a,c)=>a+({A:4,B:4,C:3}[c]),0),0);
