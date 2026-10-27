@@ -132,3 +132,8 @@ body:has(dialog[open]){overflow:hidden}
 @media(max-width:900px) and (orientation:landscape) and (max-height:500px){
  .world{background-position:76% center}
 }
+
+/* Keep schedule editor labels and controls on shared rows. */
+#schedule-dialog #schedule-edit .toolbar{align-items:flex-end;gap:12px}
+#schedule-dialog #schedule-edit label{margin:0;line-height:20px}
+#schedule-dialog #schedule-edit .toolbar input,#schedule-dialog #schedule-edit .toolbar select,#schedule-dialog #schedule-edit .toolbar button{box-sizing:border-box;height:48px;min-height:48px;margin:0;line-height:24px}
