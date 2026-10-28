@@ -25,7 +25,7 @@
 
 ## 部署與驗證
 
-新增 `gas/SuggestionEngine.gs`、`gas/Suggestions.gs` 與 `gas/Suggestions.html`。一般本機建置已含新介面。現有線上介面較新時，使用 `node scripts/merge-suggestions.mjs <剛匯出的雲端原始碼> <輸出檔>` 精確加入新功能，保留其他程式及介面；不要拿舊 Portal.gs 覆蓋正式網站。
+新增 `gas/SuggestionEngine.gs`、`gas/Suggestions.gs` 與 `gas/Suggestions.html`。從較舊 GitHub 版本重新部署時，若 Access.gs 尚無 readSheets_，一併加入 `gas/SuggestionRead.gs`；既有第 25 版以上的雲端已有相同讀取輔助函式，不必重複加入。一般本機建置已含新介面。現有線上介面較新時，使用 `node scripts/merge-suggestions.mjs <剛匯出的雲端原始碼> <輸出檔>` 精確加入新功能，保留其他程式及介面；不要拿舊 Portal.gs 覆蓋正式網站。
 
 執行 `node --test`。測試使用虛構員工，驗證權限、缺值、需求、請假、整日組合、資格、跨月、既有班次、過期草稿、伺服器重新計算、備份、未知寫入結果及不重送。
 
