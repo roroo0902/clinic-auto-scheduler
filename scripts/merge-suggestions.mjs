@@ -10,7 +10,7 @@ if(!match)throw Error('Cloud portal not found.');
 const html=JSON.parse(match[1]);
 if(!html.includes('id="schedule-dialog"')||!html.includes('id="schedule-month"')||!html.includes('</body>'))throw Error('Unsupported cloud UI.');
 const ui=fs.readFileSync(new URL('gas/Suggestions.html',root),'utf8');
-const mergedHTML=html.replace('</body>',ui+'</body>');
+const mergedHTML=html.replace('班表查閱與人工登錄 · 自動排班尚未啟用','班表查閱 · 規則建議排班 · 管理者確認後套用').replace('</body>',ui+'</body>');
 const portal='const PORTAL_HTML_ = '+JSON.stringify(mergedHTML)+';';
 const base=old.replace(match[0],portal);
 if(base.replace(portal,match[0])!==old)throw Error('Unexpected change to existing code.');
