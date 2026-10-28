@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const [source,output]=process.argv.slice(2);
+if(!source||!output||source===output)throw Error('Usage: node scripts/merge-auto-scheduling.mjs <fresh-cloud-source> <new-output>');
+const root=new URL('../',import.meta.url),lf=s=>s.replace(/\r\n/g,'\n'),base=lf(fs.readFileSync(source,'utf8'));
+if(base.includes('function previewAutoSchedule('))throw Error('Automatic scheduling already exists. Update exact reviewed sections instead.');
+for(const name of ['requireMember_','readSheets_','canonicalFormHeaders_','cellValue'])if(!base.includes('function '+name+'('))throw Error('Cloud source lacks required helper '+name);
+const line=base.split('\n').find(l=>l.startsWith('const PORTAL_HTML_ = '));if(!line)throw Error('Portal constant not found');
+const html=JSON.parse(line.slice('const PORTAL_HTML_ = '.length,-1));if(!html.includes('</body>'))throw Error('Portal body missing');
+const addon=lf(fs.readFileSync(new URL('gas/AutoSchedule.html',root),'utf8'));
+const updated=html.replace('自動排班尚未啟用','自動排班需先通過資料檢查').replace('</body>',addon+'\n</body>');
+for(const m of updated.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
+let merged=base.replace(line,'const PORTAL_HTML_ = '+JSON.stringify(updated)+';');
+for(const name of ['AutoHeaders','AutoEngine','AutoSearch','AutoFixture','AutoService'])merged+='\n'+lf(fs.readFileSync(new URL('gas/'+name+'.gs',root),'utf8'));
+new vm.Script(merged);fs.writeFileSync(output,merged,{flag:'wx'});console.log('Merged without replacing existing UI or server functions. Verify and deploy the new output.');

@@ -1,0 +1,45 @@
+<style>
+#auto-schedule{width:min(1100px,96vw);max-height:92vh;overflow:auto;background:#172333;color:#f5eedf;border:1px solid #ac9161;border-radius:14px;padding:22px;font:16px/1.65 system-ui}#auto-schedule::backdrop{background:#000a}#auto-schedule button,#auto-schedule input,#auto-schedule select{font:inherit;padding:9px;border-radius:7px}#auto-schedule button{cursor:pointer}#auto-schedule button:disabled{opacity:.45;cursor:wait}#auto-schedule a{color:#a9d8ff}#auto-schedule label{display:block;margin:10px 0}#auto-schedule table{border-collapse:collapse;min-width:650px}#auto-schedule th,#auto-schedule td{border:1px solid #677487;padding:5px;white-space:nowrap}#auto-schedule .auto-scroll{overflow:auto;max-height:400px}#auto-schedule .auto-actions{display:flex;gap:10px;flex-wrap:wrap}#auto-launch{position:fixed;bottom:18px;right:18px;z-index:90;background:#e3c58e;color:#142033;padding:12px 20px;border:1px solid #99804e;border-radius:24px;font:600 16px system-ui}#auto-message{white-space:pre-line}.auto-note{color:#e7cc93}
+</style>
+<button id="auto-launch" hidden>自動排班</button>
+<dialog id="auto-schedule" aria-labelledby="auto-title">
+ <div class="auto-actions"><h2 id="auto-title">自動排班與同步</h2><button id="auto-close" style="margin-left:auto">關閉</button></div>
+ <p>先檢查資料，再產生整月預覽。缺少的人數保持待填；不會以零代替。通過全部已輸入的硬限制，並經管理者確認後才寫入 Google Sheet。</p>
+ <label>排班月份 <input id="auto-month" type="month" value="2026-11"></label>
+ <label>資料模式 <select id="auto-mode"><option value="production">正式資料</option><option value="acceptance">獨立驗收：17 位虛構人員</option></select></label>
+ <p class="auto-note" id="auto-mode-note">正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。待填表中已填的需求會一併套用。</p>
+ <label><input id="auto-reviewed" type="checkbox"> 我已覆核輸入；未填的選填規則本次不啟用。此檢查不代表法規合規認證，結果仍須人工覆核。</label>
+ <div class="auto-actions"><button id="auto-check">檢查缺漏</button><button id="auto-preview">產生排班預覽</button><a id="auto-fill" href="https://docs.google.com/spreadsheets/d/1yXezGllA3WtarKxIpWrVJmObqizbhnBAjub8cFMATiQ/edit#gid=26102990" target="_blank" rel="noopener">填寫 2026-11 人力需求</a></div>
+ <p id="auto-message" role="status" aria-live="polite"></p><div id="auto-results"></div>
+ <div id="auto-confirm-area" hidden><label><input id="auto-confirm" type="checkbox"> 我已查看每位人員及日期，確認將這份預覽寫入指定工作表。</label><button id="auto-publish" disabled>確認寫入 Google Sheet</button></div>
+</dialog>
+<script>
+(()=>{
+const $=id=>document.getElementById(id),dialog=$('auto-schedule');let busy=false,draft=null,seq=0;
+const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
+const invalidate=()=>{seq++;draft=null;$('auto-confirm-area').hidden=true;$('auto-confirm').checked=false;$('auto-publish').disabled=true;};
+const setBusy=value=>{busy=value;for(const id of ['auto-month','auto-mode','auto-check','auto-preview','auto-reviewed','auto-close'])$(id).disabled=value;$('auto-publish').disabled=value||!draft||!$('auto-confirm').checked;};
+const fail=error=>{invalidate();setBusy(false);$('auto-message').textContent=error?.message||String(error);};
+const names={Employees:'員工基本資料',ShiftDefinitions:'班別時間設定',CalendarDates:'日曆設定',DailyShiftDemands:'每日人力需求',CrossMonthCoverage:'跨月資料完整性',EmployeeSettingsHistory:'員工設定歷程'};
+function render(result){
+ $('auto-results').replaceChildren();$('auto-message').textContent=result.status==='READY'?'排班預覽已完成；尚未寫入 Sheet。':result.status==='CHECKED'?'輸入檢查通過，可產生預覽。':result.status==='NEEDS_INPUT'?'資料仍有 '+result.issueCount+' 項待確認，其中人力需求 '+result.missingDemandCount+' 筆待填。未寫入任何班表。':'尚未找到通過全部硬限制的方案。未寫入任何班表。';
+ if(result.mode==='acceptance')$('auto-results').append(node('p','驗收資料：17 位虛構人員，僅寫入「自動排班驗收」，不會修改正式班表或人力需求。'));
+ for(const warning of result.warnings||[])$('auto-results').append(node('p',warning));
+ if(result.issues?.length){const list=node('ul');for(const issue of result.issues)list.append(node('li',(names[issue.sheet]||issue.sheet)+(issue.row?' 第 '+issue.row+' 列':'')+'：'+issue.message));$('auto-results').append(list);}
+ if(result.plan){
+  const wrap=node('div');wrap.className='auto-scroll';const table=node('table'),head=node('tr');['人員','總工時','出勤天數','目標差額',...Array.from({length:result.dayCount},(_,i)=>String(i+1))].forEach(t=>head.append(node('th',t)));table.append(head);
+  for(const e of result.validation.stats){const tr=node('tr');tr.dataset.employee=e.id;[e.name,e.hours,e.workDays,e.hourDifference===null?'未設定':e.hourDifference,...Object.keys(result.plan[e.id]).sort().map(d=>result.plan[e.id][d]||'休')].forEach(v=>tr.append(node('td',v)));table.append(tr);}wrap.append(table);$('auto-results').append(wrap);
+  $('auto-results').append(node('p','已驗證 '+result.employeeCount+' 人、'+result.dayCount+' 天。預覽有效 20 分鐘；Sheet 有變動須重新產生。'));
+  draft=result;$('auto-confirm-area').hidden=false;
+ }
+}
+function preview(checkOnly){if(busy)return;if(!checkOnly&&!$('auto-reviewed').checked){$('auto-message').textContent='請先勾選輸入覆核確認。';return;}invalidate();const thisSeq=seq;setBusy(true);$('auto-results').replaceChildren();$('auto-message').textContent=checkOnly?'正在讀取 Google Sheet 與檢查缺漏…':'正在搜尋排班方案並逐項驗證，請稍候…';google.script.run.withSuccessHandler(result=>{if(thisSeq!==seq)return;setBusy(false);render(result);}).withFailureHandler(fail).previewAutoSchedule({month:$('auto-month').value,mode:$('auto-mode').value,checkOnly,reviewedInputs:$('auto-reviewed').checked});}
+$('auto-check').onclick=()=>preview(true);$('auto-preview').onclick=()=>preview(false);
+$('auto-confirm').onchange=()=>{$('auto-publish').disabled=busy||!draft||!$('auto-confirm').checked;};
+$('auto-publish').onclick=()=>{if(busy||!draft||!$('auto-confirm').checked)return;const token=draft.token;setBusy(true);$('auto-message').textContent='正在重新檢查輸入、備份、寫入與讀回核對…';google.script.run.withSuccessHandler(r=>{invalidate();setBusy(false);$('auto-message').textContent='已寫入並讀回核對成功：'+r.employeeCount+' 人，總工時 '+r.hours+' 小時。版本 '+r.version;const a=node('a','開啟已同步的 Google Sheet');a.href=r.sheetUrl;a.target='_blank';a.rel='noopener';$('auto-results').prepend(a);}).withFailureHandler(fail).publishAutoSchedule({token,confirmed:true});};
+$('auto-mode').onchange=()=>{invalidate();$('auto-results').replaceChildren();$('auto-message').textContent='';$('auto-month').value=$('auto-mode').value==='acceptance'?'2030-11':'2026-11';$('auto-mode-note').textContent=$('auto-mode').value==='acceptance'?'只使用明確標示的虛構測試條件，結果寫入獨立驗收分頁。':'正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。待填表中已填的需求會一併套用。';};
+$('auto-month').onchange=invalidate;$('auto-reviewed').onchange=invalidate;
+$('auto-launch').onclick=()=>dialog.showModal();$('auto-close').onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
+google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';}).withFailureHandler(()=>{}).getCurrentMember();
+})();
+</script>
