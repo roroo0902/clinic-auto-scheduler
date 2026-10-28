@@ -1,0 +1,21 @@
+// Preserve a freshly exported cloud UI. Never replace it with an older local Portal.gs.
+import fs from 'node:fs';
+import vm from 'node:vm';
+const [source, destination]=process.argv.slice(2);
+if(!source||!destination)throw Error('Usage: node scripts/merge-suggestions.mjs cloud-source.gs output.gs');
+const root=new URL('../',import.meta.url),old=fs.readFileSync(source,'utf8');
+if(old.includes('const SUGGESTION_ENGINE_VERSION_'))throw Error('Already contains suggestions; review and replace the existing module explicitly.');
+const match=old.match(/const PORTAL_HTML_ = ("(?:[^"\\]|\\.)*");/);
+if(!match)throw Error('Cloud portal not found.');
+const html=JSON.parse(match[1]);
+if(!html.includes('id="schedule-dialog"')||!html.includes('id="schedule-month"')||!html.includes('</body>'))throw Error('Unsupported cloud UI.');
+const ui=fs.readFileSync(new URL('gas/Suggestions.html',root),'utf8');
+const mergedHTML=html.replace('</body>',ui+'</body>');
+const portal='const PORTAL_HTML_ = '+JSON.stringify(mergedHTML)+';';
+const base=old.replace(match[0],portal);
+if(base.replace(portal,match[0])!==old)throw Error('Unexpected change to existing code.');
+const merged=base+'\n'+fs.readFileSync(new URL('gas/SuggestionEngine.gs',root),'utf8')+'\n'+fs.readFileSync(new URL('gas/Suggestions.gs',root),'utf8');
+new vm.Script(merged);
+for(const m of mergedHTML.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(m[1]);
+fs.writeFileSync(destination,merged);
+console.log('Merged and syntax-checked; existing cloud HTML and backend preserved.');
