@@ -1,0 +1,50 @@
+<style>
+#weekly-demands{width:min(920px,94vw);max-height:90dvh;box-sizing:border-box;overflow:auto;padding:24px;border:1px solid #c8ad73;border-radius:16px;background:#202b3b;color:#f1ead9;font:16px/1.6 system-ui}#weekly-demands::backdrop{background:#050b16cc}#weekly-demands h2,#weekly-demands h3{color:#e9cb91;margin:8px 0}#weekly-demands .wd-close{position:sticky;float:right;top:0;min-width:44px;min-height:44px}#weekly-demands label{display:block}#weekly-demands label>span{display:block;font-size:13px;margin-bottom:5px}#weekly-demands input,#weekly-demands select{width:100%;box-sizing:border-box;min-height:44px;padding:8px;font:16px system-ui;color:#fff;background:#152132;border:1px solid #8496ad;border-radius:6px}#weekly-demands input[type=checkbox]{width:auto;min-height:0;margin-right:8px}#weekly-demands details{border:1px solid #657b94;border-radius:8px;margin:12px 0;padding:12px}#weekly-demands summary{cursor:pointer;font-weight:bold;min-height:36px}#weekly-demands .wd-shift{display:grid;grid-template-columns:60px 1.3fr repeat(3,1fr);gap:10px;align-items:end;padding:12px 0;border-top:1px solid #41536b}#weekly-demands .wd-shift>strong{align-self:center}#weekly-demands .wd-options{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}#weekly-demands button{min-height:44px}#weekly-demands .wd-hint{color:#d1dbe8;font-size:14px}#wd-status{white-space:pre-wrap;color:#ffe0a0}#weekly-demands .wd-actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}#weekly-demands .wd-scroll{overflow:auto;max-height:42vh}#weekly-demands table{border-collapse:collapse;width:100%;font-size:14px}#weekly-demands th,#weekly-demands td{padding:8px;border:1px solid #657b94;text-align:left;white-space:nowrap}@media(max-width:650px){#weekly-demands{padding:16px}#weekly-demands .wd-options{grid-template-columns:1fr}#weekly-demands .wd-shift{grid-template-columns:repeat(3,minmax(0,1fr))}#weekly-demands .wd-shift>strong{grid-column:1}#weekly-demands .wd-shift>label:first-of-type{grid-column:2/4}#weekly-demands .wd-actions button{width:100%}}
+</style>
+<dialog id="weekly-demands" aria-labelledby="wd-title"><button type="button" class="wd-close" aria-label="關閉每週固定需求">×</button><h2 id="wd-title">每週固定人力需求</h2><p id="wd-status" role="status"></p><div id="wd-body"></div></dialog>
+<script>
+const wdDialog=document.getElementById('weekly-demands'),wdBody=document.getElementById('wd-body');
+let wdBusy=false,wdDirty=false,wdTemplateHash='',wdSaved=[],wdDraft=null,wdMonth='';
+const wdStatus=t=>document.getElementById('wd-status').textContent=t;
+function wdRpc(method,input){return new Promise((resolve,reject)=>{const r=google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);if(method==='get')r.getWeeklyDemandSettings();else if(method==='preview')r.previewWeeklyDemands(input);else r.applyWeeklyDemands(input);});}
+function wdClose(){if(wdBusy)return;if(wdDirty&&!confirm('尚未套用的設定會清除，確定關閉？'))return;wdDirty=false;wdDialog.close();}
+wdDialog.querySelector('.wd-close').addEventListener('click',wdClose);wdDialog.addEventListener('cancel',e=>{e.preventDefault();wdClose();});window.addEventListener('beforeunload',e=>{if(wdDirty||wdBusy){e.preventDefault();e.returnValue='';}});
+const wdOriginalList=formList;
+formList=function(){wdOriginalList();if(demandIsForm()&&!formData.readOnly){const b=formButton('每週固定需求 → 套用整月',wdOpen);b.id='weekly-demand-open';formBody.prepend(b);}};
+async function wdOpen(){
+ if(!demandDiscard())return;formDirty=false;formDraft=null;formList();wdMonth=demandMonth;wdDirty=false;wdDraft=null;wdDialog.showModal();wdBody.replaceChildren();wdBusy=true;wdStatus('正在讀取每週範本…');
+ try{const r=await wdRpc('get');wdTemplateHash=r.templateHash;wdSaved=r.template;wdRender();wdStatus('套用月份：'+wdMonth+'。確認前不會修改 Sheet。');}catch(e){wdStatus(e.message||'讀取失敗');wdBody.append(formButton('重新讀取',wdOpen));}finally{wdBusy=false;}
+}
+function wdExcluded(text){return text.trim()?text.split(/[,，、\s]+/).filter(Boolean).map(v=>{if(!/^\d{1,2}$/.test(v))throw Error('略過日期請填日數，例如 1, 15, 28。');return wdMonth+'-'+v.padStart(2,'0');}):[];}
+function wdRender(){
+ wdBody.replaceChildren();const form=formEl('form'),template=wdDraft?.template||wdSaved,controls=[];
+ const note=formEl('p','設定每週固定班別後，一次套用 '+wdMonth+'。特殊日期可先略過，或套用後回月曆個別修改。');note.className='wd-hint';form.append(note);
+ const copy=formButton('將週一設定複製到週二～週六',()=>{for(let d=2;d<=6;d++)for(const s of ['A','B','C']){const source=controls.find(c=>c.weekday===1&&c.shift===s),target=controls.find(c=>c.weekday===d&&c.shift===s);for(const k of ['mode','min','ideal','max'])target[k].value=source[k].value;target.refresh();}wdDirty=true;wdStatus('已複製週一設定到週二～週六，尚未儲存。');});form.append(copy);
+ for(let day=1;day<=7;day++){
+  const detail=formEl('details');detail.open=day===1;detail.append(formEl('summary','星期'+['','一','二','三','四','五','六','日'][day]));
+  for(const shift of ['A','B','C']){const rule=template.find(r=>r.weekday===day&&r.shift===shift),line=formEl('div');line.className='wd-shift';line.append(formEl('strong',demandShiftNames[shift]));const c={weekday:day,shift};
+   for(const [key,title] of [['mode','班別狀態'],['min','最低人數'],['ideal','理想人數'],['max','最高人數']]){const label=formEl('label');label.append(formEl('span',title));const input=formEl(key==='mode'?'select':'input');if(key==='mode')[['skip','不套用'],['open','開診'],['closed','休診']].forEach(([v,t])=>input.append(new Option(t,v)));else{input.type='number';input.min='0';input.max='999';input.step='1';input.placeholder=key==='ideal'?'可留空':'請填寫';}input.value=String(rule[key]??'');input.setAttribute('aria-label','星期'+day+' '+demandShiftNames[shift]+' '+title);label.append(input);line.append(label);c[key]=input;input.addEventListener('input',()=>wdDirty=true);}
+   c.refresh=()=>{for(const k of ['min','ideal','max']){c[k].disabled=c.mode.value!=='open';if(c.mode.value==='closed')c[k].value='0';}};c.mode.addEventListener('change',()=>{c.refresh();wdDirty=true;});c.refresh();controls.push(c);detail.append(line);
+  }form.append(detail);
+ }
+ const hint=formEl('p','不套用＝保留該星期班別的原資料；休診＝人數設為 0。最低與最高必填，理想可留空。');hint.className='wd-hint';form.append(hint);
+ const options=formEl('div');options.className='wd-options';const modeLabel=formEl('label');modeLabel.append(formEl('span','如何處理已有人數？'));const mode=formEl('select');mode.append(new Option('只填空白，保留已設定的班別','fill'),new Option('重新套用，覆蓋已設定的班別','replace'));mode.value=wdDraft?.mode||'fill';modeLabel.append(mode);options.append(modeLabel);
+ const excludeLabel=formEl('label');excludeLabel.append(formEl('span','特殊日期不套用（日數，以逗號分隔）'));const exclude=formEl('input');exclude.type='text';exclude.placeholder='例如 1, 15, 28';exclude.value=wdDraft?.excludedDates.map(d=>String(+d.slice(-2))).join(', ')||'';excludeLabel.append(exclude);options.append(excludeLabel);form.append(options);
+ const submit=formEl('button','預覽整月套用結果');submit.type='submit';submit.className='action';form.append(submit);
+ form.addEventListener('input',()=>wdDirty=true);form.addEventListener('submit',async e=>{e.preventDefault();if(wdBusy)return;try{wdDraft={month:wdMonth,mode:mode.value,excludedDates:wdExcluded(exclude.value),template:controls.map(c=>({weekday:c.weekday,shift:c.shift,mode:c.mode.value,min:c.mode.value==='open'&&c.min.value!==''?Number(c.min.value):'',ideal:c.mode.value==='open'&&c.ideal.value!==''?Number(c.ideal.value):'',max:c.mode.value==='open'&&c.max.value!==''?Number(c.max.value):''})),fingerprint:formData.fingerprint,templateHash:wdTemplateHash};wdBusy=true;submit.disabled=true;wdStatus('正在核對整月資料，尚未寫入…');const result=await wdRpc('preview',wdDraft);wdShowPreview(result);}catch(err){wdStatus(err.message||'預覽失敗');}finally{wdBusy=false;submit.disabled=false;}});wdBody.append(form);
+}
+function wdShowPreview(result){
+ wdDirty=true;wdBody.replaceChildren();wdStatus('尚未寫入：'+result.month+'，將修改 '+result.changes.length+' 個班別；保留 '+result.preserved+' 個已設定班別；略過 '+result.skipped+' 個班別。');
+ wdBody.append(formEl('p',result.mode==='replace'?'本次會覆蓋既有設定，請核對特殊日期已略過。':'只填完全未設定人數的班別；已有部分人數或休診的班別會保留。'),formEl('p','確認後會保存每週範本；後續可在月曆修改特殊日期。'));
+ const display=values=>{const get=k=>values[result.headers.indexOf(k)];if(get('isClosed')===true)return '休診';return ['requiredHeadcount','idealHeadcount','MaxStaff'].map(k=>get(k)===''?'未填':get(k)).join(' / ');};
+ const wrap=formEl('div');wrap.className='wd-scroll';const table=formEl('table'),head=formEl('tr');['日期','班別','原本：最低 / 理想 / 最高','套用後：最低 / 理想 / 最高'].forEach(t=>head.append(formEl('th',t)));table.append(head);
+ result.changes.forEach(c=>{const tr=formEl('tr');[c.date,demandShiftNames[c.shift],c.created?'未建立':display(c.before),display(c.after)].forEach(t=>tr.append(formEl('td',String(t))));table.append(tr);});wrap.append(table);wdBody.append(wrap);
+ const check=formEl('input');check.type='checkbox';const label=formEl('label');label.append(check,document.createTextNode('我已核對，儲存每週範本並套用以上變更。'));wdBody.append(label);
+ const bar=formEl('div');bar.className='wd-actions';const back=formButton('返回修改',()=>{wdRender();wdStatus('尚未寫入，可繼續修改。');}),save=formButton('確認套用整月',async()=>{
+  if(wdBusy||!check.checked)return;wdBusy=true;save.disabled=true;back.disabled=true;check.disabled=true;wdStatus('正在備份、套用與讀回核對，請勿重複操作…');
+  try{const r=await wdRpc('apply',{token:result.token,confirmed:true});wdDirty=false;formDirty=false;formDraft=null;formData=r.data;formList();wdBody.replaceChildren(formEl('p','已儲存每週範本，並核對 '+r.changed+' 個班別。'),formButton('返回月曆',()=>wdDialog.close()));wdStatus(r.month+' 套用完成。特殊日期可直接點月曆修改。');}
+  catch(e){wdStatus((e.message||'套用未完成')+'\n請先重新讀取 Sheet 確認結果，不要重複送出。');wdBody.append(formButton('關閉並重新讀取',()=>{wdDirty=false;wdDialog.close();formLoad(formData.name);}));}
+  finally{wdBusy=false;}
+ });save.disabled=true;check.addEventListener('change',()=>save.disabled=!check.checked);bar.append(back,save);wdBody.append(bar);
+}
+</script>

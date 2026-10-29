@@ -1,0 +1,15 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const [source,output]=process.argv.slice(2);
+if(!source||!output||source===output)throw Error('Usage: node scripts/merge-weekly-demands.mjs <fresh-cloud-source> <new-output>');
+const base=fs.readFileSync(source,'utf8'),root=new URL('../',import.meta.url);
+if(base.includes('function previewWeeklyDemands('))throw Error('Module already exists; review exact changes before updating.');
+for(const fn of ['snapshotForm_','checkedValues_','readSheets_','stableFormJson_'])if(!base.includes('function '+fn+'('))throw Error('Missing helper '+fn);
+const line=base.split('\n').find(l=>l.startsWith('const PORTAL_HTML_ = '));
+const html=JSON.parse(line.trim().slice('const PORTAL_HTML_ = '.length,-1));
+if(!html.includes('const demandShiftNames='))throw Error('Demand calendar required.');
+const next=html.replace('</body>',fs.readFileSync(new URL('gas/WeeklyDemands.html',root),'utf8')+'\n</body>');
+for(const s of next.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(s[1]);
+const code=base.replace(line,()=> 'const PORTAL_HTML_ = '+JSON.stringify(next)+';')+'\n'+fs.readFileSync(new URL('gas/WeeklyDemands.gs',root),'utf8');
+new vm.Script(code);fs.writeFileSync(output,code,{flag:'wx'});
+console.log('Merged weekly demand module into fresh cloud source; existing server and UI retained.');
