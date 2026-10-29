@@ -1,0 +1,79 @@
+<style>
+#web-form:has(.demand-calendar){width:min(1000px,94vw);max-width:94vw;box-sizing:border-box}#web-form .demand-toolbar{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:18px 0}#web-form .demand-toolbar label{flex:1;min-width:130px}#web-form .demand-toolbar button{min-height:46px}#web-form .demand-calendar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}#web-form .demand-week{text-align:center;padding:8px 0;color:#d7e4ef}#web-form .demand-day{font:inherit;text-align:left;background:#152132;color:#fff;border:1px solid #657b94;border-radius:7px;padding:8px;min-height:112px;cursor:pointer;display:flex;flex-direction:column;gap:5px}#web-form .demand-day[aria-pressed=true]{border:2px solid #f3ce85;background:#34445b}#web-form .demand-day strong{font-size:18px}#web-form .demand-day span{font:12px/1.5 system-ui;white-space:nowrap}.demand-pending{color:#ffe0a0}.demand-ready{color:#b9edc9}.demand-closed{color:#c3c9d1}#web-form .demand-shifts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}#web-form .demand-shift{border:1px solid #657b94;border-radius:10px;padding:14px;background:#152132}#web-form .demand-shift p{font:14px/1.6 system-ui;margin:8px 0;color:#e2e8ef}#web-form .demand-shift h3{margin:0;font-size:18px}#web-form .demand-shift button{min-height:44px}#web-form .demand-detail{margin-top:22px;border-top:1px solid #657b94;padding-top:14px}#web-form .demand-editor{padding:16px;background:#152132;border:1px solid #c8ad73;border-radius:10px}#web-form .demand-editor .fields{margin:16px 0}#web-form .demand-editor input,#web-form .demand-editor select{min-height:48px}#web-form .demand-editor h3{margin-top:0}@media(max-width:650px){#web-form .demand-calendar{gap:3px}#web-form .demand-day{padding:5px 3px;min-height:103px}#web-form .demand-day strong{font-size:16px}#web-form .demand-day span{font-size:10px}#web-form .demand-shifts{grid-template-columns:1fr}#web-form .demand-toolbar button{padding:10px}#web-form .demand-week{font-size:13px}}
+</style>
+<script>
+const demandShiftNames={A:'早班',B:'午班',C:'晚班'};
+let demandMonth='',demandDate='',demandNewShift='A';
+const demandOriginalList=formList,demandOriginalFields=formFields;
+function demandIsForm(){return formData?.name==='DailyShiftDemands';}
+function demandValue(record,key){const cell=record?.cells[formData.headers.indexOf(key)];return cell?.value??'';}
+function demandISO(value){
+ if(typeof value==='number')return new Date(Date.UTC(1899,11,30)+value*86400000).toISOString().slice(0,10);
+ const text=String(value||''),date=new Date(text+'T00:00:00Z');return /^\d{4}-\d{2}-\d{2}$/.test(text)&&Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===text?text:'';
+}
+function demandRows(date,shift){return formData.rows.filter(r=>demandISO(demandValue(r,'date'))===date&&demandValue(r,'shiftId')===shift);}
+function demandState(rows){
+ if(rows.length>1)return {label:'重複',css:'demand-pending'};
+ if(!rows.length)return {label:'未建',css:'demand-pending'};
+ const r=rows[0],closed=demandValue(r,'isClosed'),min=demandValue(r,'requiredHeadcount'),max=demandValue(r,'MaxStaff'),ideal=demandValue(r,'idealHeadcount');
+ if(closed===true)return {label:[min,max,ideal].some(v=>v!==''&&Number(v)>0)?'衝突':'休診',css:'demand-closed'};
+ if(closed!==false||min===''||max==='')return {label:'待填',css:'demand-pending'};
+ if(![min,max].every(v=>typeof v==='number'&&Number.isInteger(v)&&v>=0)||min>max||ideal!==''&&(!Number.isInteger(ideal)||ideal<min||ideal>max))return {label:'待核對',css:'demand-pending'};
+ return {label:min+'–'+max,css:'demand-ready'};
+}
+function demandDays(month){const [y,m]=month.split('-').map(Number);return {offset:new Date(Date.UTC(y,m-1,1)).getUTCDay(),count:new Date(Date.UTC(y,m,0)).getUTCDate()};}
+function demandDiscard(){return !formDirty||confirm('切換會清除尚未儲存的修改，確定切換？');}
+formList=function(){
+ if(!demandIsForm())return demandOriginalList();
+ const required=['demandId','date','shiftId','requiredHeadcount','MaxStaff','idealHeadcount','isClosed'];
+ if(required.some(k=>!formData.headers.includes(k)))return demandOriginalList();
+ formDirty=false;formDraft=null;formBody.replaceChildren();
+ const months=[...new Set(formData.rows.map(r=>demandISO(demandValue(r,'date')).slice(0,7)).filter(Boolean))].sort();
+ if(!demandMonth)demandMonth=months[0]||new Date().toLocaleDateString('sv-SE',{timeZone:'Asia/Taipei'}).slice(0,7);
+ const title=formEl('p','先選日期，再設定當天早、午、晚班需要的人數。');formBody.append(title);
+ const toolbar=formEl('div');toolbar.className='demand-toolbar';
+ const shiftMonth=delta=>{if(!demandDiscard())return;const [y,m]=demandMonth.split('-').map(Number);demandMonth=new Date(Date.UTC(y,m-1+delta,1)).toISOString().slice(0,7);demandDate='';formList();};
+ toolbar.append(formButton('‹ 上個月',()=>shiftMonth(-1)));
+ const label=formEl('label');label.append(formEl('span','選擇月份'));const select=formEl('select');
+ [...new Set([...months,demandMonth])].sort().forEach(m=>select.append(new Option(m.replace('-',' 年 ')+' 月',m)));select.value=demandMonth;
+ select.addEventListener('change',()=>{if(!demandDiscard()){select.value=demandMonth;return;}demandMonth=select.value;demandDate='';formList();});label.append(select);toolbar.append(label,formButton('下個月 ›',()=>shiftMonth(1)));formBody.append(toolbar);
+ const hint=formEl('p','早／午／晚：數字為「最低–最高」人數；待填＝資料未完整，未建＝尚無資料。點日期查看理想人數。');hint.className='hint';formBody.append(hint);
+ if(!demandDate.startsWith(demandMonth))demandDate=demandMonth+'-01';
+ const grid=formEl('div');grid.className='demand-calendar';grid.setAttribute('aria-label',demandMonth+' 人力需求月曆');
+ ['日','一','二','三','四','五','六'].forEach(w=>{const e=formEl('div',w);e.className='demand-week';grid.append(e);});
+ const {offset,count}=demandDays(demandMonth);for(let i=0;i<offset;i++)grid.append(formEl('div'));
+ for(let day=1;day<=count;day++){
+  const date=demandMonth+'-'+String(day).padStart(2,'0'),button=formButton('',()=>{if(!demandDiscard())return;demandDate=date;formDirty=false;formDraft=null;demandRenderDay();grid.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.date===date)));document.getElementById('demand-selected-title').focus();});
+  button.className='demand-day';button.dataset.date=date;button.setAttribute('aria-pressed',String(date===demandDate));button.append(formEl('strong',String(day)));
+  const descriptions=[];for(const s of ['A','B','C']){const state=demandState(demandRows(date,s)),line=formEl('span',demandShiftNames[s].slice(0,1)+' '+state.label);line.className=state.css;button.append(line);descriptions.push(demandShiftNames[s]+state.label);}
+  button.setAttribute('aria-label',date+' '+descriptions.join('，'));grid.append(button);
+ }formBody.append(grid);
+ const detail=formEl('section');detail.id='demand-detail';detail.className='demand-detail';formBody.append(detail);
+ if(!demandDate.startsWith(demandMonth))demandDate=demandMonth+'-01';demandRenderDay();
+ formBody.append(formButton('重新讀取',()=>{if(demandDiscard())formLoad(formData.name);}));
+};
+function demandRenderDay(){
+ const target=document.getElementById('demand-detail');target.replaceChildren();const heading=formEl('h3',demandDate+'（星期'+['日','一','二','三','四','五','六'][new Date(demandDate+'T00:00:00Z').getUTCDay()]+'）');heading.id='demand-selected-title';heading.tabIndex=-1;target.append(heading);
+ const shifts=formEl('div');shifts.className='demand-shifts';
+ for(const shift of ['A','B','C']){
+  const rows=demandRows(demandDate,shift),card=formEl('div');card.className='demand-shift';card.append(formEl('h3',demandShiftNames[shift]));
+  if(rows.length===1){const r=rows[0],closed=demandValue(r,'isClosed');card.append(formEl('p',closed===true?'休診':closed===false?'開診':'開診／休診：待確認'));for(const [key,text] of [['requiredHeadcount','最低'],['idealHeadcount','理想'],['MaxStaff','最高']]){const value=demandValue(r,key);card.append(formEl('p',text+'：'+(value===''?'未設定':value+' 人')));}}
+  else card.append(formEl('p',rows.length?'同日期、班別有重複資料，請先核對 Sheet。':'尚未建立人力需求'));
+  if(rows.length<2&&!formData.readOnly)card.append(formButton(rows.length?'修改'+demandShiftNames[shift]:'設定'+demandShiftNames[shift],()=>{if(!demandDiscard())return;demandNewShift=shift;formFields(rows[0]?.row??-1);document.getElementById('demand-edit-title').focus();}));shifts.append(card);
+ }target.append(shifts);const holder=formEl('div');holder.id='form-fields';target.append(holder);
+}
+formFields=function(row,draft){
+ if(!demandIsForm())return demandOriginalFields(row,draft);
+ const record=formData.rows.find(r=>r.row===row),headers=formData.headers,before=record?record.cells.map(c=>c.value):headers.map(()=>''),seed=draft?draft.slice():before.slice();
+ if(row<0&&!draft){seed[headers.indexOf('demandId')]='DEM-'+demandDate+'-'+demandNewShift;seed[headers.indexOf('date')]=demandDate;seed[headers.indexOf('shiftId')]=demandNewShift;}
+ const at=key=>seed[headers.indexOf(key)],holder=document.getElementById('form-fields');holder.replaceChildren();
+ const form=formEl('form');form.className='demand-editor';const heading=formEl('h3',demandISO(at('date'))+' · '+(demandShiftNames[at('shiftId')]||at('shiftId')));heading.id='demand-edit-title';heading.tabIndex=-1;form.append(heading);
+ const grid=formEl('div');grid.className='fields';const inputs=[];
+ for(const key of ['isClosed','requiredHeadcount','idealHeadcount','MaxStaff','notes']){const i=headers.indexOf(key);if(i<0)continue;const label=formEl('label');label.append(formEl('span',key==='isClosed'?'當天此班是否開診':labels[key]||key));let input;
+  if(key==='isClosed'){input=formEl('select');[['','請選擇'],['false','開診'],['true','休診']].forEach(([v,t])=>input.append(new Option(t,v)));}else{input=formEl('input');input.type=key==='notes'?'text':'number';if(input.type==='number'){input.min='0';input.step='1';}input.placeholder=key==='notes'?'可留空':'未設定';}
+  input.value=String(seed[i]);input.disabled=!!record?.cells[i]?.formula;input.addEventListener('input',()=>formDirty=true);label.append(input);grid.append(label);inputs.push({i,key,input});
+ }form.append(grid);const note=formEl('p','最低＝至少要幾人；理想＝希望幾人；最高＝最多幾人。休診請將人數設為 0；留白仍代表尚未設定。');note.className='hint';form.append(note);
+ const bar=formEl('div');bar.className='bar';const preview=formEl('button','預覽人數變更');preview.type='submit';preview.className='action';bar.append(preview);form.append(bar);formDirty=!!draft;
+ form.addEventListener('submit',e=>{e.preventDefault();try{const values=seed.slice();inputs.forEach(({i,key,input})=>{if(!input.disabled)values[i]=parseInput(key,input.value);});validateRecord(headers,values,formData.name);formPreview(row,before,values);}catch(err){formStatus(err.message);}});holder.append(form);
+};
+</script>
