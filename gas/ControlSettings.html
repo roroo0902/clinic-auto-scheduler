@@ -1,0 +1,56 @@
+<style>
+#web-form .control-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 24px}#web-form .control-card{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:16px;border:1px solid #8496ad;border-radius:10px;background:#152132;color:#fff;gap:8px;cursor:pointer;font:inherit}#web-form .control-card span{color:#d6e2ed;font-size:14px}#web-form .control-advanced{margin:24px 0}#web-form .control-advanced summary{cursor:pointer;padding:12px 0}#web-form .control-editor{max-width:520px}#web-form .control-editor select{min-height:48px}#web-form .control-editor .hint{margin:12px 0}@media(max-width:650px){#web-form .control-cards{grid-template-columns:1fr}}
+</style>
+<script>
+// Presentation only: keep the existing authorized preview/save/readback workflow.
+const controlSettings={
+ WEEK_START_DAY:['每週起始日','選擇一週從星期幾開始。'],
+ NIGHT_FAIRNESS_WEIGHT:['晚班平均分配','提高重視程度，會更優先平均分配晚班。'],
+ HOLIDAY_FAIRNESS_WEIGHT:['假日班平均分配','提高重視程度，會更優先平均分配假日班。'],
+ SHIFT_PREFERENCE_WEIGHT:['員工偏好班別','提高重視程度，會更優先考慮員工希望上的班別。'],
+ LEAVE_PREFERENCE_WEIGHT:['員工希望休假','提高重視程度，會更優先考慮員工的休假偏好。'],
+ STABILITY_WEIGHT:['保留原有班表','提高重視程度，會更傾向保留已排好的班次。']
+};
+function controlIsForm(){return formData&&['排班控制','排班控制設定'].includes(formData.name);}
+function controlDisplay(code,value){
+ if(value==='')return '尚未設定';
+ if(code==='WEEK_START_DAY')return ['','星期一','星期二','星期三','星期四','星期五','星期六','星期日'][Number(value)]||String(value);
+ return ({0:'不列入偏好',1:'一般',2:'較重視',3:'優先考慮'})[String(value)]||'自訂（'+value+'）';
+}
+const controlOriginalList=formList,controlOriginalFields=formFields;
+formList=function(){
+ if(!controlIsForm()||formData.readOnly)return controlOriginalList();
+ formDirty=false;formDraft=null;formBody.replaceChildren();
+ formBody.append(formEl('p','選擇一項設定，再預覽並確認儲存。'));
+ const known=formData.rows.filter(r=>controlSettings[r.cells[0]?.value]);
+ for(const section of ['基本設定','排班偏好']){
+  formBody.append(formEl('h3',section));const cards=formEl('div');cards.className='control-cards';
+  known.filter(r=>(r.cells[0].value==='WEEK_START_DAY')===(section==='基本設定')).forEach(r=>{
+   const code=r.cells[0].value,button=formButton('',()=>{if(formDirty&&!confirm('切換會清除未儲存的修改，確定切換？'))return;formFields(r.row);document.getElementById('control-value')?.focus();});
+   button.className='control-card';button.append(formEl('strong',controlSettings[code][0]),formEl('span',controlDisplay(code,r.cells[2].value)));cards.append(button);
+  });formBody.append(cards);
+ }
+ const hint=formEl('p','排班偏好供「智慧排班建議」參考，仍須符合人力與可排班限制。');hint.className='hint';formBody.append(hint);
+ const holder=formEl('div');holder.id='form-fields';formBody.append(holder);
+ const advanced=formEl('details');advanced.className='control-advanced';advanced.append(formEl('summary','進階設定與系統資訊'));
+ const select=formEl('select');select.setAttribute('aria-label','進階設定');select.append(new Option('選擇進階設定',''));
+ formData.rows.filter(r=>r.cells[0]?.value&&!controlSettings[r.cells[0].value]).forEach(r=>select.append(new Option(String(r.cells[1]?.value||r.cells[0].value),String(r.row))));
+ select.addEventListener('change',()=>{if(select.value&&(!formDirty||confirm('捨棄目前修改？')))controlOriginalFields(Number(select.value));});advanced.append(select);formBody.append(advanced);
+ formBody.append(formButton('重新讀取',()=>{if(!formDirty||confirm('捨棄修改並重新讀取？'))formLoad(formData.name);}));
+};
+formFields=function(row,draft){
+ const record=formData?.rows.find(r=>r.row===row),code=record?.cells[0]?.value;
+ if(!controlIsForm()||!controlSettings[code])return controlOriginalFields(row,draft);
+ const before=record.cells.map(c=>c.value),value=draft?draft[2]:before[2],holder=document.getElementById('form-fields');holder.replaceChildren();
+ const form=formEl('form');form.className='control-editor';form.append(formEl('h3',controlSettings[code][0]));
+ const label=formEl('label');label.append(formEl('span',code==='WEEK_START_DAY'?'選擇星期':'重視程度'));
+ const input=formEl('select');input.id='control-value';input.append(new Option('尚未設定',''));
+ (code==='WEEK_START_DAY'?[1,2,3,4,5,6,7]:[0,1,2,3]).forEach(v=>input.append(new Option(controlDisplay(code,v),String(v))));
+ if(value!==''&&![...input.options].some(o=>o.value===String(value)))input.append(new Option(controlDisplay(code,value),String(value)));
+ input.value=String(value);input.disabled=!!record.cells[2].formula;input.addEventListener('change',()=>formDirty=true);label.append(input);form.append(label);
+ const hint=formEl('p',controlSettings[code][1]);hint.className='hint';form.append(hint);
+ const details=formEl('details');details.append(formEl('summary','查看設定說明'),formEl('p',String(before[3]||'')),formEl('small',code));form.append(details);
+ const bar=formEl('div');bar.className='bar';const preview=formEl('button','預覽變更');preview.className='action';preview.type='submit';bar.append(preview);form.append(bar);formDirty=!!draft;
+ form.addEventListener('submit',e=>{e.preventDefault();const values=before.slice();values[2]=input.disabled||input.value===String(before[2])?before[2]:input.value===''?'':Number(input.value);try{validateRecord(formData.headers,values,formData.name);formPreview(row,before,values);}catch(err){formStatus(err.message);}});holder.append(form);
+};
+</script>
