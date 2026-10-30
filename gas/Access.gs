@@ -33,7 +33,7 @@ function getMenuSection(section) {
   const member = requireMember_(); // Re-read on every request, so revocation takes effect.
   const menus = {
     new: {title:'召喚醫者', tabs:['Employees','EmployeeQualifications','AllowedShifts']},
-    roles: {title:'英靈編成', tabs:['Employees','AllowedShifts','EmployeeAvailability','RecurringAvailability','ForcedShifts','EmployeePreferences','組合優先設定','班別優先人員','LeaveRequests','個人假日設定']},
+    roles: {title:'英靈編成', tabs:['Employees','AssignmentLocks','AllowedShifts','EmployeeAvailability','RecurringAvailability','ForcedShifts','EmployeePreferences','組合優先設定','班別優先人員','LeaveRequests','個人假日設定']},
     battle: {title:'啟動命運之輪', tabs:['排班控制','DailyShiftDemands','Schedule_W1初版','統計與檢查規則']},
     other: {title:'禁忌藏書閣', tabs:['參數設定索引','使用說明','ShiftDefinitions','CalendarDates']}
   };

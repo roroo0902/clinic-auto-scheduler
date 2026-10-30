@@ -26,7 +26,7 @@ async function formLoad(name){
 function formTable(headers,rows){const wrap=formEl('div');wrap.className='scroll-table';const table=formEl('table'),head=formEl('tr');headers.forEach(h=>head.append(formEl('th',labels[h]||h)));table.append(head);rows.forEach(values=>{const tr=formEl('tr');values.forEach(v=>tr.append(formEl('td',String(v))));table.append(tr);});wrap.append(table);return wrap;}
 function formList(){
  formDirty=false;formDraft=null;formBody.replaceChildren();
- const visible=formData.rows.filter(r=>r.cells.some(c=>c.value!==''||c.formula));
+ const visible=formData.rows.filter(r=>r.cells.some(c=>c.formula||(c.value!==''&&c.value!==false)));
  if(formData.readOnly){formBody.append(formTable(formData.headers,visible.map(r=>r.cells.map(c=>c.display||c.value))));return;}
  const bar=formEl('div');bar.className='bar';const select=formEl('select');select.setAttribute('aria-label','選擇現有資料');select.append(new Option('選擇要修改的資料',''));
  visible.forEach(r=>select.append(new Option(r.cells.slice(0,4).map(c=>c.display||c.value).join(' · '),String(r.row))));

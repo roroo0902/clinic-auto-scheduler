@@ -1,0 +1,20 @@
+const fs=require('fs');
+const p=process.cwd();
+let s=fs.readFileSync(process.argv[2],'utf8').replace(/\r\n/g,'\n');
+function once(a,b){if(s.split(a).length!==2)throw Error('Cannot uniquely match '+a.slice(0,100));s=s.replace(a,b);}
+once("roles: {title:'英靈編成', tabs:['Employees','AllowedShifts',", "roles: {title:'英靈編成', tabs:['Employees','AssignmentLocks','AllowedShifts',");
+once("Employees:'員工基本資料',EmployeeQualifications:","AssignmentLocks:'班次鎖定',Employees:'員工基本資料',EmployeeQualifications:");
+once('const CHINESE_FORM_COLUMNS_ = {','const CHINESE_FORM_COLUMNS_ = {"AssignmentLocks":"lockId,employeeId,date,shiftId,locked,lockedBy,lockedAt,reason,version",');
+once("if(cell&&cell.formula){if(row<0||v!==cell.value)throw Error('公式欄位不可修改；新增含公式資料請聯絡管理者。');return v;}","if(cell&&cell.formula){if(row<0?v!=='':v!==cell.value)throw Error('公式欄位不可修改。');return v;}");
+once("const unique=['Employees',", "const unique=['AssignmentLocks','Employees',");
+once("const requests=[];\n  if(row>=data.rowCount)","const requests=[];\n  const template=!before&&data.rows[0];\n  const formulaColumns=template?template.cells.flatMap((c,i)=>c.formula?[i]:[]):[];\n  if(row>=data.rowCount)");
+once("for(const d of diff)requests.push({updateCells:","for(const d of diff.filter(d=>!formulaColumns.includes(d.index)))requests.push({updateCells:");
+once("  Sheets.Spreadsheets.batchUpdate({requests},ACCESS_SHEET_ID);\n  const verify=snapshotForm_(input.name)","  for(const i of formulaColumns)requests.push({copyPaste:{source:{sheetId:data.sheetId,startRowIndex:template.row,endRowIndex:template.row+1,startColumnIndex:i,endColumnIndex:i+1},destination:{sheetId:data.sheetId,startRowIndex:row,endRowIndex:row+1,startColumnIndex:i,endColumnIndex:i+1},pasteType:'PASTE_FORMULA'}});\n  Sheets.Spreadsheets.batchUpdate({requests},ACCESS_SHEET_ID);\n  const verify=snapshotForm_(input.name)");
+once("if(!saved||diff.some(d=>saved.cells[d.index].value!==d.value))", "if(!saved||diff.some(d=>!formulaColumns.includes(d.index)&&saved.cells[d.index].value!==d.value)||formulaColumns.some(i=>!saved.cells[i].formula))");
+const m=s.match(/const PORTAL_HTML_ = ("(?:[^"\\]|\\.)*");/);let h=JSON.parse(m[1]);
+h=h.replace("const basicDetails=formEl('details');basicDetails.className='rpg-basic';", "const basicDetails=formEl('details');basicDetails.open=true;basicDetails.className='rpg-basic';");
+h=h.replace("const visible=formData.rows.filter(r=>r.cells.some(c=>c.value!==''||c.formula));", "const visible=formData.rows.filter(r=>r.cells.some(c=>c.formula||(c.value!==''&&c.value!==false)));");
+s=s.replace(m[0],'const PORTAL_HTML_ = '+JSON.stringify(h)+';');
+fs.writeFileSync(process.argv[3],s);
+new (require('vm').Script)(s);
+console.log('Merged current cloud source; syntax OK; '+s.length+' characters');

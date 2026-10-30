@@ -1,5 +1,5 @@
 const FORM_NAMES_ = {
- Employees:'員工基本資料',EmployeeQualifications:'資格與技能',AllowedShifts:'允許班別',
+ AssignmentLocks:'班次鎖定',Employees:'員工基本資料',EmployeeQualifications:'資格與技能',AllowedShifts:'允許班別',
  EmployeeAvailability:'指定日期可排時段',RecurringAvailability:'每週固定時段',ForcedShifts:'指定班別',
  EmployeePreferences:'排班偏好',LeaveRequests:'請假申請',個人假日設定:'個人假日',組合優先設定:'班別組合順位',班別優先人員:'班別優先人員',
  排班控制:'排班控制設定',DailyShiftDemands:'每日人力與人數上限',Schedule_W1初版:'當月班表',統計與檢查規則:'統計與檢查規則',
@@ -50,7 +50,7 @@ function checkedValues_(data,row,values){
  const clean=values.map((v,i)=>{
   if(!['string','boolean','number'].includes(typeof v)||(typeof v==='number'&&!Number.isFinite(v))||String(v).length>4000)throw Error('欄位資料格式不正確。');
   const cell=before?before.cells[i]:data.rows[0]&&data.rows[0].cells[i];
-  if(cell&&cell.formula){if(row<0||v!==cell.value)throw Error('公式欄位不可修改；新增含公式資料請聯絡管理者。');return v;}
+  if(cell&&cell.formula){if(row<0?v!=='':v!==cell.value)throw Error('公式欄位不可修改。');return v;}
   if(before&&v===before.cells[i].value)return v;
   const condition=cell&&cell.validation&&cell.validation.condition;
   if(condition&&v!==''){
@@ -70,7 +70,7 @@ function checkedValues_(data,row,values){
   const own=Session.getActiveUser().getEmail().toLowerCase();
   if(String(clean[0]).toLowerCase()===own&&(clean[2]!=='管理者'||clean[3]!==true))throw Error('不能在此停用或降級目前登入的管理者。');
  }
- const unique=['Employees','EmployeePreferences','EmployeeAvailability','RecurringAvailability','ForcedShifts','LeaveRequests','DailyShiftDemands','ShiftDefinitions','CalendarDates','登入授權名單'];
+ const unique=['AssignmentLocks','Employees','EmployeePreferences','EmployeeAvailability','RecurringAvailability','ForcedShifts','LeaveRequests','DailyShiftDemands','ShiftDefinitions','CalendarDates','登入授權名單'];
  if(unique.includes(data.name)&&data.rows.some(r=>r.row!==row&&String(r.cells[0].value).trim().toLowerCase()===String(clean[0]).trim().toLowerCase()))throw Error('此識別代碼或帳號已存在。');
  return clean;
 }
@@ -88,11 +88,14 @@ function saveFormData(input){
   const diff=data.headers.flatMap((_,i)=>!before||clean[i]!==before.cells[i].value?[{index:i,value:clean[i]}]:[]);
   if(!diff.length)throw Error('沒有需要上傳的變更。');
   const requests=[];
+  const template=!before&&data.rows[0];
+  const formulaColumns=template?template.cells.flatMap((c,i)=>c.formula?[i]:[]):[];
   if(row>=data.rowCount)requests.push({appendDimension:{sheetId:data.sheetId,dimension:'ROWS',length:row-data.rowCount+1}});
-  for(const d of diff)requests.push({updateCells:{start:{sheetId:data.sheetId,rowIndex:row,columnIndex:d.index},rows:[{values:[cellValue(d.value)]}],fields:'userEnteredValue'}});
+  for(const d of diff.filter(d=>!formulaColumns.includes(d.index)))requests.push({updateCells:{start:{sheetId:data.sheetId,rowIndex:row,columnIndex:d.index},rows:[{values:[cellValue(d.value)]}],fields:'userEnteredValue'}});
+  for(const i of formulaColumns)requests.push({copyPaste:{source:{sheetId:data.sheetId,startRowIndex:template.row,endRowIndex:template.row+1,startColumnIndex:i,endColumnIndex:i+1},destination:{sheetId:data.sheetId,startRowIndex:row,endRowIndex:row+1,startColumnIndex:i,endColumnIndex:i+1},pasteType:'PASTE_FORMULA'}});
   Sheets.Spreadsheets.batchUpdate({requests},ACCESS_SHEET_ID);
   const verify=snapshotForm_(input.name),saved=verify.rows.find(r=>r.row===row);
-  if(!saved||diff.some(d=>saved.cells[d.index].value!==d.value))throw Error('寫入已送出但讀回不符，請重新讀取確認，勿重複上傳。');
+  if(!saved||diff.some(d=>!formulaColumns.includes(d.index)&&saved.cells[d.index].value!==d.value)||formulaColumns.some(i=>!saved.cells[i].formula))throw Error('寫入已送出但讀回不符，請重新讀取確認，勿重複上傳。');
   return {ok:true,row:row+1};
  }finally{lock.releaseLock();}
 }
@@ -100,7 +103,7 @@ function saveFormData(input){
 
 // Chinese tab and header aliases keep the existing form API and validation keys stable.
 const CHINESE_SHEET_TITLES_ = {"Schedule_W1初版":"班表初版","SystemConfig":"系統參數","Employees":"員工基本資料","ShiftDefinitions":"班別時間設定","CalendarDates":"日曆設定","DailyShiftDemands":"每日班別人力需求","ShiftQualificationDemands":"班別資格需求","EmployeeQualifications":"員工資格與技能","EmployeePreferences":"員工排班偏好","EmployeeAvailability":"指定日期可排時段","RecurringAvailability":"每週固定可排時段","LeaveRequests":"請假申請","PairingRules":"員工搭班規則","ShiftTransitions":"班別銜接規則","ScheduleVersions":"班表版本紀錄","ScheduleAssignments":"班表排班明細","AssignmentLocks":"排班鎖定設定","SchedulingTasks":"排班任務","TaskCheckpoints":"任務續算紀錄","TaskEvents":"任務事件紀錄","ValidationReports":"驗證報告","ChangeLogs":"變更紀錄","AuditLogs":"操作稽核紀錄","Notifications":"通知紀錄","AlgorithmComparisons":"排班演算法比較","Backups":"備份紀錄","DeploymentHistory":"部署紀錄","ForcedShifts":"指定班別","CrossMonthCoverage":"跨月資料完整性","EmployeeSettingsHistory":"員工設定歷程","LegalPolicy":"法規政策設定","AllowedShifts":"允許班別組合"};
-const CHINESE_FORM_COLUMNS_ = {"SystemConfig":"key,value,type,scope,effectiveFrom,effectiveTo,version,status","Employees":"employeeId,displayName,active,department,employmentType,targetMonthlyHours,minMonthlyRestDays,maxMonthlyWorkDays,maxDailyHours,maxWeeklyHours,maxConsecutiveDays,preferredMinDailyHours,validFrom,validTo,version,maxWeeklyWorkDays,minWeeklyShifts,maxWeeklyShifts,maxMonthlyHours,maxDailyShifts,targetMonthlyWorkDays,minWeeklyHours,minRestHours","ShiftDefinitions":"shiftId,shiftName,startTime,endTime,endDayOffset,unpaidBreakMinutes,breakRules,hoursCalculationPolicy,effectiveFrom,effectiveTo,version","CalendarDates":"date,weekday,isOperatingDay,isNationalHoliday,weekendFlag,holidayType,notes,calendarVersion","DailyShiftDemands":"demandId,date,shiftId,requiredHeadcount,MaxStaff,version,idealHeadcount,isClosed","EmployeeQualifications":"employeeId,qualificationId,qualificationName,roleCategory,verifiedForLegalDuty,verificationSourceRef,verificationAsOf,validFrom,validTo,version","EmployeePreferences":"preferenceId,employeeId,preferenceType,shiftId,dayOfWeek,holidayType,rankOrPreference,validFrom,validTo,version","EmployeeAvailability":"availabilityId,employeeId,date,shiftId,conditionType,isHard,source,approvalStatus,validFrom,validTo,version","RecurringAvailability":"recurringId,employeeId,weekday,shiftId,conditionType,isHard,validFrom,validTo,version","LeaveRequests":"requestId,employeeId,startDate,endDate,requestedShifts,status,reasonRef,reviewedBy,reviewedAt,version","ForcedShifts":"forcedShiftId,employeeId,date,shiftId,source,validFrom,validTo,version","AllowedShifts":"employeeId,combination,allowed,validFrom,validTo,notes","組合優先設定":"employeeId,combination,mode,priority,maxPerWeek,date,validFrom,validTo,notes","班別優先人員":"date,weekday,shiftId,employeeId,priority,allowOutsideList,validFrom,validTo,notes","個人假日設定":"employeeId,date,dayType,schedulePolicy,notes","登入授權名單":"Google 信箱,顯示名稱,角色,啟用,備註"};
+const CHINESE_FORM_COLUMNS_ = {"AssignmentLocks":"lockId,employeeId,date,shiftId,locked,lockedBy,lockedAt,reason,version","SystemConfig":"key,value,type,scope,effectiveFrom,effectiveTo,version,status","Employees":"employeeId,displayName,active,department,employmentType,targetMonthlyHours,minMonthlyRestDays,maxMonthlyWorkDays,maxDailyHours,maxWeeklyHours,maxConsecutiveDays,preferredMinDailyHours,validFrom,validTo,version,maxWeeklyWorkDays,minWeeklyShifts,maxWeeklyShifts,maxMonthlyHours,maxDailyShifts,targetMonthlyWorkDays,minWeeklyHours,minRestHours","ShiftDefinitions":"shiftId,shiftName,startTime,endTime,endDayOffset,unpaidBreakMinutes,breakRules,hoursCalculationPolicy,effectiveFrom,effectiveTo,version","CalendarDates":"date,weekday,isOperatingDay,isNationalHoliday,weekendFlag,holidayType,notes,calendarVersion","DailyShiftDemands":"demandId,date,shiftId,requiredHeadcount,MaxStaff,version,idealHeadcount,isClosed","EmployeeQualifications":"employeeId,qualificationId,qualificationName,roleCategory,verifiedForLegalDuty,verificationSourceRef,verificationAsOf,validFrom,validTo,version","EmployeePreferences":"preferenceId,employeeId,preferenceType,shiftId,dayOfWeek,holidayType,rankOrPreference,validFrom,validTo,version","EmployeeAvailability":"availabilityId,employeeId,date,shiftId,conditionType,isHard,source,approvalStatus,validFrom,validTo,version","RecurringAvailability":"recurringId,employeeId,weekday,shiftId,conditionType,isHard,validFrom,validTo,version","LeaveRequests":"requestId,employeeId,startDate,endDate,requestedShifts,status,reasonRef,reviewedBy,reviewedAt,version","ForcedShifts":"forcedShiftId,employeeId,date,shiftId,source,validFrom,validTo,version","AllowedShifts":"employeeId,combination,allowed,validFrom,validTo,notes","組合優先設定":"employeeId,combination,mode,priority,maxPerWeek,date,validFrom,validTo,notes","班別優先人員":"date,weekday,shiftId,employeeId,priority,allowOutsideList,validFrom,validTo,notes","個人假日設定":"employeeId,date,dayType,schedulePolicy,notes","登入授權名單":"Google 信箱,顯示名稱,角色,啟用,備註"};
 function resolveFormSheet_(name, properties) {
  const candidates=properties.filter(p=>p.title===name||p.title===CHINESE_SHEET_TITLES_[name]);
  if(candidates.length!==1)throw Error(candidates.length?'資料分頁名稱重複，請聯絡管理者。':'找不到資料分頁。');
