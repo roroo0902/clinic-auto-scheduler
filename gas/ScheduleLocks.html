@@ -1,0 +1,55 @@
+<style>
+.schedule-lock-panel{margin:16px 0;padding:16px;border:1px solid #b49a53;border-radius:12px;background:#fff9ea;color:#253b50}.schedule-lock-panel button{min-height:44px;margin:8px 8px 0 0}.schedule-lock-cell{cursor:pointer}.schedule-lock-cell:focus{outline:3px solid #b49a53;outline-offset:-3px}.schedule-lock-panel p{white-space:pre-line}.day[data-locked="true"]{outline:2px solid #b49a53;outline-offset:-2px}
+</style>
+<script>
+const renderScheduleBeforeLocks=renderSchedule;
+renderSchedule=function(data){
+ document.getElementById('schedule-lock-panel')?.remove();
+ renderScheduleBeforeLocks(data);
+ const panel=scheduleEl('section');panel.id='schedule-lock-panel';panel.className='schedule-lock-panel';panel.hidden=true;panel.setAttribute('aria-live','polite');
+ const editor=document.getElementById('schedule-edit');editor.before(panel);
+ if(data.view==='personal'&&data.employees.length){
+  scheduleContent.querySelectorAll('.calendar .day').forEach((cell,i)=>{
+   const e=data.employees[0],locked=e.dayLocks?.[i]?.locked;
+   cell.dataset.locked=String(!!locked);if(locked)cell.append(scheduleEl('small','🔒 已鎖定'));
+   cell.setAttribute('aria-label',e.name+'，'+(i+1)+' 日，'+(e.days[i]||'未排班')+(locked?'，已鎖定':'')+'，點選查看');
+   cell.onclick=()=>{showScheduleDay(data,i,false);showScheduleLockDay(data,e,i);};
+  });
+ }else{
+  const rows=[...scheduleContent.querySelectorAll('table tr')].filter(r=>r.querySelector('td'));
+  rows.forEach((row,j)=>[...row.querySelectorAll('td')].slice(1,1+data.dayCount).forEach((cell,i)=>{
+   const e=data.employees[j],locked=e.dayLocks?.[i]?.locked;
+   if(locked)cell.append(scheduleEl('span',' 🔒'));
+   cell.setAttribute('aria-label',e.name+'，'+data.month+'-'+String(i+1).padStart(2,'0')+'，'+(e.days[i]||'未排班')+(locked?'，已鎖定':''));
+   if(data.canEdit){cell.tabIndex=0;cell.setAttribute('role','button');cell.classList.add('schedule-lock-cell');cell.onclick=()=>showScheduleLockDay(data,e,i);cell.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();cell.click();}};}
+  }));
+ }
+ if(data.canEdit)scheduleStatus.textContent+=' · 點選班表日期可鎖定或解除鎖定';
+};
+function showScheduleLockDay(data,employee,index){
+ if(scheduleSaving||scheduleData!==data)return;const panel=document.getElementById('schedule-lock-panel');if(!panel)return;
+ panel.hidden=false;panel.replaceChildren();const state=employee.dayLocks?.[index]||{locked:false,fingerprint:''},date=data.month+'-'+String(index+1).padStart(2,'0');
+ if(data.view==='personal')showScheduleDay(data,index,false);
+ if(data.canEdit){const edit=document.getElementById('schedule-edit'),person=edit.querySelector('select'),day=edit.querySelector('input[type="date"]');if(person&&day){person.value=employee.id;day.value=date;day.onchange?.();}}
+ panel.append(scheduleEl('h3',employee.name+' · '+date),scheduleEl('p','目前班別：'+(employee.days[index]||'未排班')+'\n'+(state.locked?'🔒 已鎖定'+(state.full?'':'（既有部分班次鎖定）'):'🔓 尚未鎖定')));
+ panel.append(scheduleEl('p','鎖定後，這一天的班別與未排班狀態會保留；須先解除鎖定才能改班或重新安排。'));
+ if(data.canEdit){
+  const action=scheduleEl('button',state.locked?'🔓 解除當日鎖定':'🔒 鎖定當日'),preview=scheduleEl('div');action.type='button';panel.append(action,preview);
+  action.onclick=()=>{
+   preview.replaceChildren(scheduleEl('p','尚未儲存：將'+(state.locked?'解除':'鎖定')+' '+employee.name+' '+date+' 的當日班次。'));
+   const confirm=scheduleEl('button',state.locked?'確認解除鎖定':'確認鎖定'),cancel=scheduleEl('button','取消');confirm.type=cancel.type='button';preview.append(confirm,cancel);cancel.onclick=()=>preview.replaceChildren();
+   confirm.onclick=async()=>{
+    if(scheduleSaving||confirm.disabled||scheduleData!==data)return;scheduleSaving=true;action.disabled=confirm.disabled=cancel.disabled=true;scheduleStatus.textContent='正在儲存並核對鎖定狀態…';
+    try{
+     const result=await new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).saveScheduleDayLock({month:data.month,employeeId:employee.id,day:index+1,before:employee.days[index],locked:!state.locked,fingerprint:state.fingerprint,view:data.view}));
+     if(!result.ok||!result.schedule)throw Error('儲存結果未確認');
+     ++scheduleSequence;scheduleData=result.schedule;scheduleContent.replaceChildren();panel.remove();renderSchedule(result.schedule);
+     const updated=result.schedule.employees.find(e=>e.id===employee.id);scheduleSaving=false;showScheduleLockDay(result.schedule,updated,index);scheduleStatus.textContent+=' · 已儲存並重新讀取核對';
+    }catch(error){scheduleStatus.textContent=(error.message||'儲存結果尚未確認')+'\n請先按「重新讀取」確認最新狀態，勿重複送出。';}
+    finally{scheduleSaving=false;}
+   };
+  };
+ }
+ panel.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+</script>

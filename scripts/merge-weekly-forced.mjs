@@ -1,0 +1,11 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const [source,output]=process.argv.slice(2),root=new URL('../',import.meta.url);
+if(!source||!output||source===output)throw Error('Provide fresh source and a separate output');
+let code=fs.readFileSync(source,'utf8');if(code.includes("const WF_TAB_="))throw Error('Module already installed');
+const lines=code.split('\n').filter(l=>l.startsWith('const PORTAL_HTML_ = '));if(lines.length!==1)throw Error('Expected one portal');
+const line=lines[0],html=JSON.parse(line.trim().slice('const PORTAL_HTML_ = '.length,-1));if(html.split('</body>').length!==2)throw Error('Expected one body');
+const combined=html.replace('</body>',()=>fs.readFileSync(new URL('gas/WeeklyForced.html',root),'utf8')+'\n</body>');
+code=code.replace(line,()=> 'const PORTAL_HTML_ = '+JSON.stringify(combined)+';')+'\n'+fs.readFileSync(new URL('gas/WeeklyForced.gs',root),'utf8');
+new vm.Script(code);for(const s of combined.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(s[1]);
+fs.writeFileSync(output,code,{flag:'wx'});console.log('Weekly assignment UI and rules merged; existing source preserved.');
