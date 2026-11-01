@@ -1,0 +1,14 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const [source,output]=process.argv.slice(2),root=new URL('../',import.meta.url);
+if(!source||!output||source===output)throw Error('Provide fresh cloud source and a different output path.');
+let code=fs.readFileSync(source,'utf8');
+if(code.includes('const WA_WEEK_='))throw Error('Module already installed; merge latest changes explicitly.');
+for(const name of ['autoSnapshot_','suggestionSnapshot_','buildScheduleSuggestion_','snapshotForm_'])if(!code.includes('function '+name+'('))throw Error('Missing dependency '+name);
+const line=code.split('\n').find(l=>l.startsWith('const PORTAL_HTML_ = '));
+let html=JSON.parse(line.trim().slice('const PORTAL_HTML_ = '.length,-1));
+html=html.replace('</body>',fs.readFileSync(new URL('gas/WeeklyAvailability.html',root),'utf8')+'\n</body>');
+for(const s of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))new vm.Script(s[1]);
+code=code.replace(line,()=> 'const PORTAL_HTML_ = '+JSON.stringify(html)+';')+'\n'+fs.readFileSync(new URL('gas/WeeklyAvailability.gs',root),'utf8');
+new vm.Script(code);fs.writeFileSync(output,code,{flag:'wx'});
+console.log('Added weekly availability editor and shared engine adapters; existing cloud source retained.');

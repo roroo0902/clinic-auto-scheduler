@@ -1,0 +1,316 @@
+[
+  {
+    "addSheet": {
+      "properties": {
+        "sheetId": 26110181,
+        "title": "每週可上班設定",
+        "gridProperties": {
+          "rowCount": 2000,
+          "columnCount": 9,
+          "frozenRowCount": 1,
+          "frozenColumnCount": 3,
+          "hideGridlines": true
+        }
+      }
+    }
+  },
+  {
+    "updateCells": {
+      "start": {
+        "sheetId": 26110181,
+        "rowIndex": 0,
+        "columnIndex": 0
+      },
+      "rows": [
+        {
+          "values": [
+            {
+              "userEnteredValue": {
+                "stringValue": "月份"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "員工代碼"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "姓名"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "星期"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "早班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "午班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "晚班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "更新時間"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "更新者"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            }
+          ]
+        }
+      ],
+      "fields": "userEnteredValue,note"
+    }
+  },
+  {
+    "repeatCell": {
+      "range": {
+        "sheetId": 26110181,
+        "startRowIndex": 0,
+        "endRowIndex": 1
+      },
+      "cell": {
+        "userEnteredFormat": {
+          "backgroundColor": {
+            "red": 0.09,
+            "green": 0.2,
+            "blue": 0.3
+          },
+          "textFormat": {
+            "bold": true,
+            "foregroundColor": {
+              "red": 1,
+              "green": 1,
+              "blue": 1
+            }
+          },
+          "wrapStrategy": "WRAP",
+          "verticalAlignment": "MIDDLE"
+        }
+      },
+      "fields": "userEnteredFormat"
+    }
+  },
+  {
+    "setDataValidation": {
+      "range": {
+        "sheetId": 26110181,
+        "startRowIndex": 1,
+        "endRowIndex": 2000,
+        "startColumnIndex": 4,
+        "endColumnIndex": 7
+      },
+      "rule": {
+        "condition": {
+          "type": "BOOLEAN"
+        },
+        "strict": true,
+        "showCustomUi": true
+      }
+    }
+  },
+  {
+    "updateDimensionProperties": {
+      "range": {
+        "sheetId": 26110181,
+        "dimension": "COLUMNS",
+        "startIndex": 0,
+        "endIndex": 9
+      },
+      "properties": {
+        "pixelSize": 135
+      },
+      "fields": "pixelSize"
+    }
+  },
+  {
+    "updateDimensionProperties": {
+      "range": {
+        "sheetId": 26110181,
+        "dimension": "ROWS",
+        "startIndex": 0,
+        "endIndex": 1
+      },
+      "properties": {
+        "pixelSize": 44
+      },
+      "fields": "pixelSize"
+    }
+  },
+  {
+    "addSheet": {
+      "properties": {
+        "sheetId": 26110182,
+        "title": "特殊日期可上班設定",
+        "gridProperties": {
+          "rowCount": 2000,
+          "columnCount": 8,
+          "frozenRowCount": 1,
+          "frozenColumnCount": 3,
+          "hideGridlines": true
+        }
+      }
+    }
+  },
+  {
+    "updateCells": {
+      "start": {
+        "sheetId": 26110182,
+        "rowIndex": 0,
+        "columnIndex": 0
+      },
+      "rows": [
+        {
+          "values": [
+            {
+              "userEnteredValue": {
+                "stringValue": "日期"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "員工代碼"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "姓名"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "早班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "午班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "晚班可排"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "更新時間"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            },
+            {
+              "userEnteredValue": {
+                "stringValue": "更新者"
+              },
+              "note": "透過網站「英靈編成 → 每週可上班時段與特殊日期」設定。尚未建立的員工／月份沿用原規則。特殊日期優先；不會直接修改正式班表。"
+            }
+          ]
+        }
+      ],
+      "fields": "userEnteredValue,note"
+    }
+  },
+  {
+    "repeatCell": {
+      "range": {
+        "sheetId": 26110182,
+        "startRowIndex": 0,
+        "endRowIndex": 1
+      },
+      "cell": {
+        "userEnteredFormat": {
+          "backgroundColor": {
+            "red": 0.09,
+            "green": 0.2,
+            "blue": 0.3
+          },
+          "textFormat": {
+            "bold": true,
+            "foregroundColor": {
+              "red": 1,
+              "green": 1,
+              "blue": 1
+            }
+          },
+          "wrapStrategy": "WRAP",
+          "verticalAlignment": "MIDDLE"
+        }
+      },
+      "fields": "userEnteredFormat"
+    }
+  },
+  {
+    "setDataValidation": {
+      "range": {
+        "sheetId": 26110182,
+        "startRowIndex": 1,
+        "endRowIndex": 2000,
+        "startColumnIndex": 3,
+        "endColumnIndex": 6
+      },
+      "rule": {
+        "condition": {
+          "type": "BOOLEAN"
+        },
+        "strict": true,
+        "showCustomUi": true
+      }
+    }
+  },
+  {
+    "updateDimensionProperties": {
+      "range": {
+        "sheetId": 26110182,
+        "dimension": "COLUMNS",
+        "startIndex": 0,
+        "endIndex": 8
+      },
+      "properties": {
+        "pixelSize": 135
+      },
+      "fields": "pixelSize"
+    }
+  },
+  {
+    "updateDimensionProperties": {
+      "range": {
+        "sheetId": 26110182,
+        "dimension": "ROWS",
+        "startIndex": 0,
+        "endIndex": 1
+      },
+      "properties": {
+        "pixelSize": 44
+      },
+      "fields": "pixelSize"
+    }
+  }
+]
