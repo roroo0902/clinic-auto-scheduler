@@ -1,0 +1,27 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path');
+const code=fs.readFileSync(path.join(__dirname,'../gas/AllowedShifts.gs'),'utf8');
+const headers=['employeeId','combination','allowed','validFrom','validTo','notes'];
+const combos=['A','B','C','AB','BC','AC','ABC'];
+const emp=[{id:'EMP001',name:'測試甲'},{id:'EMP002',name:'測試乙'}];
+const row=(id,c,v,f='2026-11-01',t='2026-11-30',notes='保留備註')=>[id,c,v,f,t,notes];
+const data=rows=>({name:'AllowedShifts',headers,sheetId:123,rowCount:500,fingerprint:'one',rows:rows.map((r,i)=>({row:i+1,cells:r.map(value=>({value,formula:false}))}))});
+const payload=(people=[{id:'EMP001',allowed:['A','AB']},{id:'EMP002',allowed:['C']}],from='2026-11-01',to='2026-11-30')=>({validFrom:from,validTo:to,people});
+function env(){const c=vm.createContext({cellValue:v=>({userEnteredValue:typeof v==='boolean'?{boolValue:v}:{stringValue:v}}),checkedValues_:(d,r,v)=>v});vm.runInContext(code,c);return c;}
+const norm=x=>JSON.parse(JSON.stringify(x));
+test('兩位員工可以選擇不同組合，ALL 不被改寫',()=>{const c=env(),d=data(combos.map(k=>row('ALL',k,true))),p=c.asPlan_(d,emp,payload());assert.equal(p.operations.length,14);assert.equal(p.summary.length,2);assert.ok(p.operations.every(o=>o.row>7&&o.values[0]!=='ALL'));assert.equal(p.operations.find(o=>o.values[0]==='EMP001'&&o.values[1]==='AB').values[2],true);assert.equal(p.operations.find(o=>o.values[0]==='EMP002'&&o.values[1]==='AB').values[2],false);});
+test('取消選取的員工不在寫入名單',()=>{const c=env(),p=c.asPlan_(data([]),emp,payload([{id:'EMP002',allowed:['B']}]));assert.ok(p.operations.every(o=>o.values[0]==='EMP002'));});
+test('同期間重送相同設定為零變更',()=>{const c=env(),d=data(combos.map(k=>row('EMP001',k,k==='A')));assert.equal(c.asPlan_(d,emp,payload([{id:'EMP001',allowed:['A']}])).operations.length,0);});
+test('保留原來的全體設定、其他員工、未重疊期間與備註',()=>{const c=env(),d=data([row('EMP001','A',true,'2026-10-01','2026-10-31'),row('EMP002','A',false),row('ALL','A',true)]),p=c.asPlan_(d,emp,payload([{id:'EMP001',allowed:['B']}]));assert.ok(p.operations.every(o=>o.row>3));});
+test('修改中間期間時保留前後歷史',()=>{const c=env(),d=data([row('EMP001','A',true,'2026-10-01','2026-12-31')]),p=c.asPlan_(d,emp,payload([{id:'EMP001',allowed:[]}],'2026-11-01','2026-11-30'));const a=p.operations.filter(o=>o.values[1]==='A');assert.ok(a.some(o=>o.values[3]==='2026-10-01'&&o.values[4]==='2026-10-31'&&o.values[2]===true));assert.ok(a.some(o=>o.values[3]==='2026-12-01'&&o.values[4]==='2026-12-31'&&o.values[2]===true));assert.ok(a.some(o=>o.values[3]==='2026-11-01'&&o.values[2]===false));assert.ok(a.every(o=>o.values[5]==='保留備註'));});
+test('個人不允許優先於全體允許',()=>{const c=env();const rules=c.asRules_(data([row('ALL','A',true),row('EMP001','A',false)]));assert.equal(c.asEffective_(rules,'EMP001','2026-11-01','A').allowed,false);assert.equal(c.asEffective_(rules,'EMP002','2026-11-01','A').allowed,true);});
+test('未設定不會默認允許',()=>{const c=env();assert.equal(c.asEffective_([],'EMP001','2026-11-01','A').allowed,false);});
+test('拒絕重疊個人期間',()=>{const c=env();assert.throws(()=>c.asPlan_(data([row('EMP001','A',true),row('EMP001','A',false)]),emp,payload()),/重疊/);});
+test('拒絕未知、停用或重複員工',()=>{const c=env();for(const people of [[{id:'NONE',allowed:[]}],[{id:'EMP001',allowed:[]},{id:'EMP001',allowed:[]}]])assert.throws(()=>c.asPlan_(data([]),emp,payload(people)));});
+test('拒絕錯誤、空白、顛倒日期與無效班別',()=>{const c=env();for(const [f,t]of [['2026-02-30',''],['',''],['2026-12-01','2026-11-01']])assert.throws(()=>c.asPlan_(data([]),emp,payload(undefined,f,t)));assert.throws(()=>c.asPlan_(data([]),emp,payload([{id:'EMP001',allowed:['X']}])),/班別/);});
+test('資料指紋或員工名單變更時阻擋',()=>{const c=env();assert.throws(()=>c.asCheckFingerprints_({data:{fingerprint:'one'},people:{fingerprint:'two'}},{fingerprint:'one',employeeFingerprint:'old'}),/更新/);});
+test('保存一次批次寫入及逐筆讀回',()=>{const c=env(),original=data(combos.map(k=>row('ALL',k,true))),p=c.asPlan_(original,emp,payload());let writes=0;c.Sheets={Spreadsheets:{batchUpdate:(body,id)=>{writes++;assert.equal(id,'isolated');assert.ok(body.requests.every(r=>Object.keys(r).length===1));}}};const saved=norm(original);for(const op of p.operations)saved.rows.push({row:op.row,cells:op.values.map(value=>({value,formula:false}))});c.asCommit_({data:original},p,'isolated',()=>({data:saved}));assert.equal(writes,1);});
+test('讀回不符不宣稱成功',()=>{const c=env(),d=data([]),p=c.asPlan_(d,emp,payload());c.Sheets={Spreadsheets:{batchUpdate:()=>{}}};assert.throws(()=>c.asCommit_({data:d},p,'isolated',()=>({data:d})),/讀回未確認/);});
+test('權限失敗時禁止儲存且不送出 API',()=>{const c=env();c.formPermission_=()=>{throw Error('管理者限定');};assert.throws(()=>c.saveAllowedShiftSettings({}),/管理者/);});
+test('未經核對不會寫入，鎖競爭時停止',()=>{const c=env();c.formPermission_=()=>{};c.LockService={getScriptLock:()=>({tryLock:()=>false})};assert.throws(()=>c.saveAllowedShiftSettings({}),/正在儲存/);});
+test('保留後續月份，無截止日期可分割',()=>{const c=env(),d=data([row('EMP001','A',true,'','')]),p=c.asPlan_(d,emp,payload([{id:'EMP001',allowed:['B']}],'2026-11-01',''));assert.ok(p.operations.some(o=>o.values[1]==='A'&&o.values[3]===''&&o.values[4]==='2026-10-31'));});
+test('前端提供員工核取方塊、預覽與確認，無硬編碼真實姓名',()=>{const s=fs.readFileSync(path.join(__dirname,'../gas/AllowedShifts.html'),'utf8');assert.ok(s.includes("check.type='checkbox'"));assert.ok(s.includes('確認儲存允許班別'));assert.ok(s.includes('employeeCard'));assert.ok(!s.includes('林怡甄'));assert.ok(s.includes("save.disabled=true"));});

@@ -1,0 +1,122 @@
+<style>
+#web-form .as-intro{line-height:1.8;color:#d6e2ed}
+#web-form .as-dates{display:flex;flex-wrap:wrap;gap:14px;margin:16px 0}
+#web-form .as-dates label{display:grid;gap:6px;flex:1 1 180px}
+#web-form .as-people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 22px}
+#web-form .as-check{display:flex;align-items:center;gap:10px;min-height:46px;padding:10px;border:1px solid #667d93;border-radius:8px;cursor:pointer;background:#152132;box-sizing:border-box;line-height:1.5}
+#web-form .as-check:has(input:checked){border-color:#e9cb91;background:#304157}
+#web-form .as-check input[type=checkbox]{width:22px;height:22px;min-height:22px;flex:0 0 22px;margin:0;padding:0;accent-color:#e9cb91}
+#web-form .as-check input:focus-visible{outline:3px solid #b8dcff;outline-offset:4px}
+#web-form .as-card{border:1px solid #8496ad;border-radius:12px;padding:16px;margin:14px 0;background:#182638}
+#web-form .as-card h3{margin:0 0 8px}#web-form .as-card p{line-height:1.7;margin:8px 0}
+#web-form .as-combos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#web-form .as-source{font-size:12px;color:#d4dfeb;display:block}#web-form .as-section{display:block;margin:14px 0 7px;color:#e9cb91}
+#web-form .as-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}#web-form .as-actions button{min-height:46px}
+#web-form .as-preview ul{padding-left:22px;line-height:1.9}#web-form .as-alert{padding:12px;border:1px solid #e9cb91;border-radius:8px;line-height:1.7}
+@media(max-width:650px){#web-form .as-people{grid-template-columns:repeat(2,minmax(0,1fr))}#web-form .as-combos{grid-template-columns:repeat(2,minmax(0,1fr))}#web-form .as-card{padding:12px}#web-form .as-check{padding:9px}#web-form .as-actions button{flex:1 1 140px}}
+</style>
+<script>
+const AS_LABELS={A:'早班',B:'午班',C:'晚班',AB:'早＋午',BC:'午＋晚',AC:'早＋晚',ABC:'早＋午＋晚'};
+let asState=null;
+function asRPC(method,arg){return new Promise((resolve,reject)=>{
+ const run=google.script.run.withSuccessHandler(resolve).withFailureHandler(reject);
+ if(method==='load')run.getAllowedShiftSettings();else if(method==='preview')run.previewAllowedShiftSettings(arg);else run.saveAllowedShiftSettings(arg);
+});}
+function asLocalRule(id,date,combo){
+ const active=asState.data.rules.filter(r=>r.combination===combo&&(!r.validFrom||r.validFrom<=date)&&(!r.validTo||r.validTo>=date));
+ const own=active.filter(r=>r.employeeId===id),matches=own.length?own:active.filter(r=>r.employeeId==='ALL');
+ if(matches.length>1)return {allowed:false,source:'期間重疊，請先整理',conflict:true};
+ return matches.length?{allowed:matches[0].allowed,source:own.length?'個人設定':'沿用全體設定'}:{allowed:false,source:'未設定（不允許）'};
+}
+async function asLoad(){
+ const gen=++formGeneration;formBusy=true;formDirty=false;formDraft=null;formData={name:'AllowedShifts'};
+ formBody.replaceChildren();document.getElementById('form-title').textContent='允許班別';formStatus('正在讀取員工與現行允許班別…');
+ try{
+  const data=await asRPC('load');if(gen!==formGeneration)return false;
+  asState={data,selected:new Set(),drafts:new Map(),validFrom:data.today,validTo:data.defaultTo};
+  asRender();formStatus('已讀取 '+data.employees.length+' 位啟用員工。勾選人員後，可分別設定班別；尚未儲存。');return true;
+ }catch(e){if(gen===formGeneration){formStatus(e.message||'讀取失敗');formBody.replaceChildren(formButton('重新讀取',()=>asLoad()));}return false;}
+ finally{if(gen===formGeneration)formBusy=false;}
+}
+function asDraftFor(id){
+ if(!asState.drafts.has(id))asState.drafts.set(id,{allowed:Object.keys(AS_LABELS).filter(c=>asLocalRule(id,asState.validFrom,c).allowed),edited:false});
+ return asState.drafts.get(id);
+}
+function asCheckbox(text,checked,onChange){
+ const label=formEl('label');label.className='as-check';const check=formEl('input');check.type='checkbox';check.checked=checked;
+ const caption=formEl('span',text);label.append(check,caption);check.addEventListener('change',()=>{if(!formBusy)onChange(check.checked);});return {label,check,caption};
+}
+function asRender(){
+ formBody.replaceChildren();const root=formEl('section');root.id='allowed-shifts-settings';
+ root.append(Object.assign(formEl('p','① 勾選員工　② 分別勾選允許班別　③ 預覽後儲存。取消選取員工只會收起卡片，不會停用員工或清除設定。'),{className:'as-intro'}));
+ const dates=formEl('div');dates.className='as-dates';
+ for(const [key,title]of [['validFrom','生效日期'],['validTo','截止日期（可留空）']]){
+  const label=formEl('label',title),input=formEl('input');input.type='date';input.value=asState[key];input.required=key==='validFrom';input.setAttribute('aria-label',title);
+  input.addEventListener('change',()=>{asState[key]=input.value;formDirty=true;for(const draft of asState.drafts.values())if(!draft.edited)draft.refresh=true;asRenderCards(cards);});
+  label.append(input);dates.append(label);
+ }
+ root.append(dates,formEl('h3','① 適用人員'));
+ const toolbar=formEl('div');toolbar.className='as-actions';const all=asCheckbox('全選',asState.data.employees.length>0&&asState.selected.size===asState.data.employees.length,checked=>{
+  asState.selected=new Set(checked?asState.data.employees.map(e=>e.id):[]);asRender();
+ });toolbar.append(all.label,formButton('重新讀取',()=>{if(!formDirty||confirm('重新讀取會捨棄尚未儲存的修改，是否繼續？'))asLoad();}));root.append(toolbar);
+ const people=formEl('div');people.className='as-people';
+ for(const person of asState.data.employees){const c=asCheckbox(person.name,asState.selected.has(person.id),checked=>{
+  if(checked)asState.selected.add(person.id);else asState.selected.delete(person.id);
+  all.check.checked=asState.selected.size===asState.data.employees.length;all.check.indeterminate=asState.selected.size>0&&!all.check.checked;
+  asRenderCards(cards);
+ });c.check.dataset.employee=person.id;people.append(c.label);}
+ all.check.indeterminate=asState.selected.size>0&&!all.check.checked;
+ root.append(people,formEl('h3','② 每位員工的允許班別'));
+ const cards=formEl('div');cards.id='as-employee-cards';root.append(cards);formBody.append(root);asRenderCards(cards);
+}
+function asRenderCards(cards){
+ cards.replaceChildren();if(!asState.selected.size){cards.append(formEl('p','請先勾選上方員工。'));return;}
+ for(const person of asState.data.employees.filter(e=>asState.selected.has(e.id))){
+  const draft=asDraftFor(person.id);if(draft.refresh){draft.allowed=Object.keys(AS_LABELS).filter(c=>asLocalRule(person.id,asState.validFrom,c).allowed);delete draft.refresh;}
+  const card=formEl('section');card.className='as-card';card.dataset.employeeCard=person.id;card.append(formEl('h3',person.name));
+  card.append(formEl('p','適用期間：'+(asState.validFrom||'請填生效日期')+' ～ '+(asState.validTo||'無截止日期')));
+  for(const [title,combos]of [['單班',['A','B','C']],['同日多班',['AB','BC','AC','ABC']]]){
+   card.append(Object.assign(formEl('strong',title),{className:'as-section'}));const group=formEl('div');group.className='as-combos';
+   for(const combo of combos){const rule=asLocalRule(person.id,asState.validFrom,combo),c=asCheckbox(AS_LABELS[combo],draft.allowed.includes(combo),checked=>{
+    draft.allowed=checked?[...new Set([...draft.allowed,combo])]:draft.allowed.filter(x=>x!==combo);draft.edited=true;formDirty=true;formStatus('尚未儲存。可繼續調整其他員工，完成後預覽變更。');
+   });c.check.setAttribute('aria-label',person.name+' '+AS_LABELS[combo]);c.caption.append(Object.assign(formEl('small',rule.source),{className:'as-source'}));group.append(c.label);}
+   card.append(group);
+  }
+  cards.append(card);
+ }
+ cards.append(formEl('p','未勾選的組合代表不允許；早班與午班分別勾選，不等於允許同一天早＋午。休假、工時等限制仍會檢查。'));
+ const actions=formEl('div');actions.className='as-actions';actions.append(formButton('取消選取',()=>{asState.selected.clear();asRender();}),formButton('預覽變更',()=>asPreview()));cards.append(actions);
+}
+function asPayload(){return {fingerprint:asState.data.fingerprint,employeeFingerprint:asState.data.employeeFingerprint,validFrom:asState.validFrom,validTo:asState.validTo,people:[...asState.selected].map(id=>({id,allowed:asDraftFor(id).allowed.slice()}))};}
+function asDisable(value){formBusy=value;formDialog.querySelectorAll('button,input,select').forEach(e=>e.disabled=value);}
+async function asPreview(){
+ if(formBusy)return;const payload=asPayload();asDisable(true);formStatus('正在檢查現行設定與修改內容…');
+ try{
+  const preview=await asRPC('preview',payload);
+  if(!preview.changedRows){formStatus('沒有需要儲存的變更。');return;}
+  formBody.replaceChildren();const box=formEl('section');box.className='as-preview';box.append(formEl('h3','③ 預覽變更（尚未儲存）'),formEl('p','適用期間：'+preview.validFrom+' ～ '+(preview.validTo||'無截止日期')));
+  for(const person of preview.summary){const card=formEl('section');card.className='as-card';card.append(formEl('h3',person.name));
+   card.append(formEl('p','儲存後允許：'+(person.allowed.map(c=>AS_LABELS[c]).join('、')||'全部不允許（此期間不排班）')));
+   const list=formEl('ul'),changed=person.details.filter(c=>c.before!==c.after);
+   for(const change of changed)list.append(formEl('li',AS_LABELS[change.combo]+'：'+(change.before?'允許':'不允許')+' → '+(change.after?'允許':'不允許')));
+   if(!changed.length)list.append(formEl('li','班別勾選不變，建立或更新這段期間的個人設定。'));
+   card.append(list);box.append(card);
+  }
+  const review=asCheckbox('我已確認每位員工的班別與適用期間',false,checked=>save.disabled=!checked);
+  const actions=formEl('div');actions.className='as-actions';const save=formButton('確認儲存允許班別',()=>asSave(payload));save.disabled=true;
+  actions.append(formButton('返回修改',()=>{asRender();formStatus('已返回修改；草稿尚未儲存。');}),save);box.append(review.label,actions);formBody.append(box);formDirty=true;
+  formStatus('尚未寫入試算表。確認後只更新本次選取員工，其他員工與全體預設不變。');
+ }catch(e){formStatus(e.message||'預覽失敗，請重新讀取確認。');}
+ finally{formBusy=false;formDialog.querySelectorAll('button,input,select').forEach(e=>e.disabled=false);const save=[...formBody.querySelectorAll('button')].find(b=>b.textContent==='確認儲存允許班別');if(save)save.disabled=true;}
+}
+async function asSave(payload){
+ if(formBusy)return;asDisable(true);formStatus('正在儲存並逐筆讀回確認，請勿關閉…');
+ try{
+  const result=await asRPC('save',payload);asState.data=result.data;asState.drafts.clear();formDirty=false;formDraft=null;asRender();
+  formStatus('已儲存 '+result.employeeCount+' 位員工的允許班別，並從 Google Sheets 讀回確認。');
+ }catch(e){
+  formBody.replaceChildren(Object.assign(formEl('p',(e.message||'儲存結果未確認')+' 請先重新讀取確認，勿重複送出。'),{className:'as-alert'}),formButton('重新讀取確認結果',()=>asLoad()),formButton('返回草稿',()=>asRender()));
+  formStatus('儲存結果需要確認；草稿仍保留。');
+ }finally{formBusy=false;formDialog.querySelectorAll('button,input,select').forEach(e=>e.disabled=false);}
+}
+</script>
