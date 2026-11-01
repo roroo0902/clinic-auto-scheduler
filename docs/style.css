@@ -154,12 +154,6 @@ html body dialog .page-back{position:fixed!important;top:max(12px,env(safe-area-
 html body dialog .page-back-bar{display:contents!important}
 html body dialog .page-back-context{display:none!important}
 
-/* Independent weekly editors share the viewport back action. */
-html body dialog #wa-back,html body dialog #wf-back{position:fixed!important;top:max(12px,env(safe-area-inset-top,0px))!important;left:max(12px,env(safe-area-inset-left,0px))!important;right:auto!important;bottom:auto!important;margin:0!important;z-index:1000;height:44px!important;min-height:44px!important;box-sizing:border-box!important;padding:9px 16px!important;line-height:24px!important;white-space:nowrap!important;font:16px system-ui;border:1px solid #c8ad73;border-radius:8px;background:#152132;color:#f1ead9;box-shadow:0 3px 12px #0005}
-@media(max-width:900px){
- html body dialog#wa-dialog,html body dialog#wf-dialog{position:fixed!important;top:calc(72px + env(safe-area-inset-top,0px))!important;bottom:auto!important;margin:0 auto!important;height:auto!important;max-height:calc(100vh - 84px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;max-height:calc(100dvh - 84px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow:auto!important}
-}
-
 /* Independent weekly pages use their own back controls. Reserve the same viewport strip. */
 html body #wa-dialog,html body #wf-dialog{position:fixed!important;top:calc(72px + env(safe-area-inset-top,0px))!important;bottom:auto!important;margin:0 auto!important;height:auto!important;max-height:calc(100vh - 84px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;max-height:calc(100dvh - 84px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow:auto!important}
 html body #wa-back,html body #wf-back{position:fixed!important;top:max(12px,env(safe-area-inset-top,0px))!important;left:max(12px,env(safe-area-inset-left,0px))!important;right:auto!important;bottom:auto!important;margin:0!important;z-index:1100;height:44px!important;min-height:44px!important;box-sizing:border-box!important;white-space:nowrap!important;line-height:24px!important;padding:9px 16px!important;font-size:16px!important;background:#203e64!important;color:#fff!important;border:1px solid #d4bb83!important;box-shadow:0 3px 12px #0005}
