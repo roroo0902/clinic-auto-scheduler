@@ -1,0 +1,46 @@
+<style>
+.schedule-batch-check[hidden]{display:none!important}
+.schedule-batch-bar{padding:12px;margin:12px 0;background:#fff9ea;color:#253b50;border:1px solid #b49a53;border-radius:12px}.schedule-batch-bar button{min-height:44px;margin:4px}.schedule-batch-check{display:inline-flex;align-items:center;justify-content:center;min-width:32px;min-height:44px;cursor:pointer}.schedule-batch-check input{appearance:auto!important;opacity:1!important;position:static!important;width:20px!important;height:20px!important;margin:4px!important;accent-color:#765b15}.schedule-batch-preview{max-height:240px;overflow:auto;white-space:pre-line}.schedule-batch-selected{background:#fff0b7!important;color:#253b50!important}
+</style>
+<script>
+const renderScheduleBeforeBatchLocks=renderSchedule;
+renderSchedule=function(data){
+ document.getElementById('schedule-batch-bar')?.remove();renderScheduleBeforeBatchLocks(data);
+ if(!data.canEdit)return;
+ const bar=scheduleEl('section');bar.id='schedule-batch-bar';bar.className='schedule-batch-bar';
+ scheduleContent.before(bar);
+ const toggle=scheduleEl('button','☑ 批次選取日期'),controls=scheduleEl('div'),count=scheduleEl('p','已選 0 個員工日期'),all=scheduleEl('button','全選目前班表'),clear=scheduleEl('button','取消全選'),lock=scheduleEl('button','🔒 批次鎖定'),unlock=scheduleEl('button','🔓 批次解除'),preview=scheduleEl('div');
+ for(const button of [toggle,all,clear,lock,unlock])button.type='button';
+ controls.hidden=true;controls.append(count,all,clear,lock,unlock,preview);bar.append(toggle,controls);
+ const selected=new Map(),entries=[];let enabled=false,uncertain=false;
+ const refresh=()=>{count.textContent='已選 '+selected.size+' 個員工日期';lock.disabled=unlock.disabled=!selected.size||scheduleSaving||uncertain;preview.replaceChildren();};
+ const add=(cell,e,i)=>{
+  const label=scheduleEl('label');label.className='schedule-batch-check';label.hidden=true;
+  const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.setAttribute('aria-label','選取 '+e.name+' '+data.month+'-'+String(i+1).padStart(2,'0'));label.append(checkbox);cell.prepend(label);
+  const key=JSON.stringify([e.id,i]),entry={cell,e,i,label,checkbox,key};entries.push(entry);
+  label.onclick=event=>event.stopPropagation();label.onkeydown=event=>event.stopPropagation();
+  checkbox.onchange=()=>{if(scheduleSaving||uncertain){checkbox.checked=selected.has(key);return;}if(checkbox.checked)selected.set(key,entry);else selected.delete(key);cell.classList.toggle('schedule-batch-selected',checkbox.checked);refresh();};
+ };
+ if(data.view==='personal'){scheduleContent.querySelectorAll('.calendar .day').forEach((cell,i)=>add(cell,data.employees[0],i));}
+ else{const rows=[...scheduleContent.querySelectorAll('table tr')].filter(r=>r.querySelector('td'));rows.forEach((row,j)=>[...row.querySelectorAll('td')].slice(1,1+data.dayCount).forEach((cell,i)=>add(cell,data.employees[j],i)));}
+ toggle.onclick=()=>{if(scheduleSaving||uncertain)return;enabled=!enabled;controls.hidden=!enabled;entries.forEach(x=>x.label.hidden=!enabled);toggle.textContent=enabled?'結束批次選取':'☑ 批次選取日期';if(!enabled){selected.clear();entries.forEach(x=>{x.checkbox.checked=false;x.cell.classList.remove('schedule-batch-selected');});refresh();}};
+ const selectAll=value=>{if(scheduleSaving||uncertain)return;selected.clear();entries.forEach(x=>{x.checkbox.checked=value;x.cell.classList.toggle('schedule-batch-selected',value);if(value)selected.set(x.key,x);});refresh();};all.onclick=()=>selectAll(true);clear.onclick=()=>selectAll(false);
+ const prepare=locked=>{
+  if(!selected.size||scheduleSaving||uncertain||scheduleData!==data)return;
+  const items=[...selected.values()].map(x=>({employeeId:x.e.id,day:x.i+1,before:x.e.days[x.i],fingerprint:x.e.dayLocks?.[x.i]?.fingerprint||''}));
+  preview.replaceChildren(scheduleEl('p','尚未儲存：將'+(locked?'鎖定':'解除鎖定')+'以下 '+items.length+' 個員工日期。'));
+  const detail=scheduleEl('div',[...selected.values()].map(x=>x.e.name+' · '+data.month+'-'+String(x.i+1).padStart(2,'0')+' · '+(x.e.days[x.i]||'未排班')).join('\n'));detail.className='schedule-batch-preview';
+  const confirm=scheduleEl('button',locked?'確認批次鎖定':'確認批次解除'),cancel=scheduleEl('button','取消');confirm.type=cancel.type='button';preview.append(detail,confirm,cancel);cancel.onclick=()=>preview.replaceChildren();
+  confirm.onclick=async()=>{
+   if(scheduleSaving||uncertain||scheduleData!==data)return;scheduleSaving=true;
+   bar.querySelectorAll('button,input').forEach(x=>x.disabled=true);entries.forEach(x=>x.checkbox.disabled=true);scheduleStatus.textContent='正在批次儲存並核對 '+items.length+' 個日期…';
+   try{
+    const result=await new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).saveScheduleDayLocks({month:data.month,view:data.view,employeeId:data.view==='personal'?data.employees[0].id:undefined,locked,items}));
+    if(!result.ok||!result.schedule||result.count!==items.length)throw Error('批次儲存結果未確認');
+    ++scheduleSequence;scheduleData=result.schedule;scheduleContent.replaceChildren();renderSchedule(result.schedule);scheduleStatus.textContent+=' · 已'+(locked?'鎖定':'解除鎖定')+' '+result.count+' 個日期，並重新讀取核對';
+   }catch(error){uncertain=true;scheduleStatus.textContent=(error.message||'批次儲存結果尚未確認')+'\n請按「重新讀取」確認最新狀態，勿重複送出。';}
+   finally{scheduleSaving=false;}
+  };
+ };lock.onclick=()=>prepare(true);unlock.onclick=()=>prepare(false);refresh();
+};
+</script>
