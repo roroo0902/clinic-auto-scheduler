@@ -79,7 +79,7 @@ function asRenderCards(cards){
    card.append(Object.assign(formEl('strong',title),{className:'as-section'}));const group=formEl('div');group.className='as-combos';
    for(const combo of combos){const rule=asLocalRule(person.id,asState.validFrom,combo),c=asCheckbox(AS_LABELS[combo],draft.allowed.includes(combo),checked=>{
     draft.allowed=checked?[...new Set([...draft.allowed,combo])]:draft.allowed.filter(x=>x!==combo);draft.edited=true;formDirty=true;formStatus('尚未儲存。可繼續調整其他員工，完成後預覽變更。');
-   });c.check.setAttribute('aria-label',person.name+' '+AS_LABELS[combo]);c.caption.append(Object.assign(formEl('small',rule.source),{className:'as-source'}));group.append(c.label);}
+   });c.check.setAttribute('aria-label',person.name+' '+AS_LABELS[combo]);if(rule.source!=='沿用全體設定')c.caption.append(Object.assign(formEl('small',rule.source),{className:'as-source'}));group.append(c.label);}
    card.append(group);
   }
   cards.append(card);
