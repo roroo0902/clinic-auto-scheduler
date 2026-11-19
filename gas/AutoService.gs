@@ -87,3 +87,14 @@ function publishAutoSchedule(input){
 }
 
 
+
+// Resolve the selected month's existing demand sheet only; never create or modify it.
+function getAutoDemandSheetLink(input){
+ autoAdmin_();const month=String(input?.month||'');
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))throw Error('月份不正確。');
+ const title='人力需求待填_'+month;
+ const meta=readSheets_(()=>Sheets.Spreadsheets.get(ACCESS_SHEET_ID,{fields:'sheets(properties(sheetId,title))'}));
+ const matches=(meta.sheets||[]).filter(s=>s.properties.title===title);
+ if(matches.length!==1)return {month,url:null};
+ return {month,url:'https://docs.google.com/spreadsheets/d/'+ACCESS_SHEET_ID+'/edit#gid='+matches[0].properties.sheetId};
+}

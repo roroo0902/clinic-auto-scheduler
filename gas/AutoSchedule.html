@@ -9,7 +9,7 @@
  <label>資料模式 <select id="auto-mode"><option value="production">正式資料</option><option value="acceptance">獨立驗收：17 位虛構人員</option></select></label>
  <p class="auto-note" id="auto-mode-note">正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。待填表中已填的需求會一併套用。</p>
  <label><input id="auto-reviewed" type="checkbox"> 我已覆核輸入；未填的選填規則本次不啟用。此檢查不代表法規合規認證，結果仍須人工覆核。</label>
- <div class="auto-actions"><button id="auto-check">檢查缺漏</button><button id="auto-preview">產生排班預覽</button><a id="auto-fill" href="https://docs.google.com/spreadsheets/d/1yXezGllA3WtarKxIpWrVJmObqizbhnBAjub8cFMATiQ/edit#gid=26102990" target="_blank" rel="noopener">填寫 2026-11 人力需求</a></div>
+ <div class="auto-actions"><button id="auto-check">檢查缺漏</button><button id="auto-preview">產生排班預覽</button><a id="auto-fill" hidden target="_blank" rel="noopener">填寫所選月份人力需求</a></div>
  <p id="auto-message" role="status" aria-live="polite"></p><div id="auto-results"></div>
  <div id="auto-confirm-area" hidden><label><input id="auto-confirm" type="checkbox"> 我已查看每位人員及日期，確認將這份預覽寫入指定工作表。</label><button id="auto-publish" disabled>確認寫入 Google Sheet</button></div>
 </dialog>
@@ -19,6 +19,13 @@ const $=id=>document.getElementById(id),dialog=$('auto-schedule');let busy=false
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 const invalidate=()=>{seq++;draft=null;$('auto-confirm-area').hidden=true;$('auto-confirm').checked=false;$('auto-publish').disabled=true;};
 const setBusy=value=>{busy=value;for(const id of ['auto-month','auto-mode','auto-check','auto-preview','auto-reviewed','auto-close'])$(id).disabled=value;$('auto-publish').disabled=value||!draft||!$('auto-confirm').checked;};
+let demandLinkSeq=0;
+function refreshDemandLink(){
+ const seq=++demandLinkSeq,link=$('auto-fill'),month=$('auto-month').value;
+ link.hidden=true;link.removeAttribute('href');link.textContent='填寫 '+month+' 人力需求';
+ if($('auto-mode').value!=='production'||!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return;
+ google.script.run.withSuccessHandler(result=>{if(seq!==demandLinkSeq)return;if(result?.url){link.href=result.url;link.hidden=false;}}).withFailureHandler(()=>{if(seq===demandLinkSeq){link.hidden=true;link.removeAttribute('href');}}).getAutoDemandSheetLink({month});
+}
 const fail=error=>{invalidate();setBusy(false);$('auto-message').textContent=error?.message||String(error);};
 const names={Employees:'員工基本資料',ShiftDefinitions:'班別時間設定',CalendarDates:'日曆設定',DailyShiftDemands:'每日人力需求',CrossMonthCoverage:'跨月資料完整性',EmployeeSettingsHistory:'員工設定歷程'};
 function render(result){
@@ -37,9 +44,9 @@ function preview(checkOnly){if(busy)return;if(!checkOnly&&!$('auto-reviewed').ch
 $('auto-check').onclick=()=>preview(true);$('auto-preview').onclick=()=>preview(false);
 $('auto-confirm').onchange=()=>{$('auto-publish').disabled=busy||!draft||!$('auto-confirm').checked;};
 $('auto-publish').onclick=()=>{if(busy||!draft||!$('auto-confirm').checked)return;const token=draft.token;setBusy(true);$('auto-message').textContent='正在重新檢查輸入、備份、寫入與讀回核對…';google.script.run.withSuccessHandler(r=>{invalidate();setBusy(false);$('auto-message').textContent='已寫入並讀回核對成功：'+r.employeeCount+' 人，總工時 '+r.hours+' 小時。版本 '+r.version;const a=node('a','開啟已同步的 Google Sheet');a.href=r.sheetUrl;a.target='_blank';a.rel='noopener';$('auto-results').prepend(a);}).withFailureHandler(fail).publishAutoSchedule({token,confirmed:true});};
-$('auto-mode').onchange=()=>{invalidate();$('auto-results').replaceChildren();$('auto-message').textContent='';$('auto-month').value=$('auto-mode').value==='acceptance'?'2030-11':'2026-11';$('auto-mode-note').textContent=$('auto-mode').value==='acceptance'?'只使用明確標示的虛構測試條件，結果寫入獨立驗收分頁。':'正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。待填表中已填的需求會一併套用。';};
-$('auto-month').onchange=invalidate;$('auto-reviewed').onchange=invalidate;
+$('auto-mode').onchange=()=>{invalidate();$('auto-reviewed').checked=false;$('auto-results').replaceChildren();$('auto-message').textContent='';refreshDemandLink();$('auto-mode-note').textContent=$('auto-mode').value==='acceptance'?'只使用明確標示的虛構測試條件，結果寫入獨立驗收分頁。':'正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。待填表中已填的需求會一併套用。';};
+$('auto-month').onchange=()=>{invalidate();$('auto-reviewed').checked=false;$('auto-results').replaceChildren();$('auto-message').textContent='';refreshDemandLink();};$('auto-reviewed').onchange=invalidate;
 $('auto-launch').onclick=()=>dialog.showModal();$('auto-close').onclick=()=>{if(!busy)dialog.close();};dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
-google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';}).withFailureHandler(()=>{}).getCurrentMember();
+google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';if(m.role==='管理者')refreshDemandLink();}).withFailureHandler(()=>{}).getCurrentMember();
 })();
 </script>
