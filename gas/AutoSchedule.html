@@ -5,7 +5,7 @@
 <dialog id="auto-schedule" aria-labelledby="auto-title">
  <div class="auto-actions"><h2 id="auto-title">自動排班與同步</h2><button id="auto-close" style="margin-left:auto">關閉</button></div>
  <p>先檢查資料，再產生整月預覽。缺少的人數保持待填；不會以零代替。通過全部已輸入的硬限制，並經管理者確認後才寫入 Google Sheet。</p>
- <label>排班月份 <input id="auto-month" type="month" value="2026-11"></label>
+ <label>排班月份 <input id="auto-month" type="month"></label>
  <label>資料模式 <select id="auto-mode"><option value="production">正式資料</option><option value="acceptance">獨立驗收：17 位虛構人員</option></select></label>
  <p class="auto-note" id="auto-mode-note">正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。人力需求差異須另行覆核，只有選擇採用的項目才會一併套用。</p>
  <label><input id="auto-reviewed" type="checkbox"> 我已覆核輸入；未填的選填規則本次不啟用。此檢查不代表法規合規認證，結果仍須人工覆核。</label>
@@ -16,7 +16,7 @@
 </dialog>
 <script>
 (()=>{
-const $=id=>document.getElementById(id),dialog=$('auto-schedule');let busy=null,draft=null,seq=0,review=null,reviewDecision=null;const selectedDemandIds=new Set();
+const $=id=>document.getElementById(id),dialog=$('auto-schedule');let busy=null,draft=null,seq=0,review=null,reviewDecision=null,monthChosen=false;const selectedDemandIds=new Set();
 const node=(tag,text)=>{const e=document.createElement(tag);if(text!==undefined)e.textContent=text;return e;};
 const invalidate=()=>{seq++;draft=null;$('auto-confirm-area').hidden=true;$('auto-confirm').checked=false;$('auto-publish').disabled=true;};
 const setBusy=phase=>{busy=phase;for(const id of ['auto-month','auto-mode','auto-check','auto-preview','auto-reviewed','auto-demand-read'])$(id).disabled=Boolean(phase);$('auto-close').disabled=phase==='write';$('auto-publish').disabled=Boolean(phase)||!draft||!$('auto-confirm').checked;setDemandControls();};
@@ -90,9 +90,16 @@ $('auto-check').onclick=()=>preview(true);$('auto-preview').onclick=()=>preview(
 $('auto-confirm').onchange=()=>{$('auto-publish').disabled=busy||!draft||!$('auto-confirm').checked;};
 $('auto-publish').onclick=()=>{if(busy||!draft||!$('auto-confirm').checked)return;const token=draft.token;setBusy('write');$('auto-message').textContent='正在重新檢查輸入、備份、寫入與讀回核對…';google.script.run.withSuccessHandler(r=>{invalidate();setBusy(null);$('auto-message').textContent='已寫入並讀回核對成功：'+r.employeeCount+' 人，總工時 '+r.hours+' 小時。版本 '+r.version;const a=node('a','開啟已同步的 Google Sheet');a.href=r.sheetUrl;a.target='_blank';a.rel='noopener';$('auto-results').prepend(a);}).withFailureHandler(fail).publishAutoSchedule({token,confirmed:true});};
 $('auto-mode').onchange=()=>{invalidate();resetDemandReview();$('auto-reviewed').checked=false;$('auto-results').replaceChildren();$('auto-message').textContent='';refreshDemandLink();$('auto-mode-note').textContent=$('auto-mode').value==='acceptance'?'只使用明確標示的虛構測試條件，結果寫入獨立驗收分頁。':'正式發布會建立班表備份，並同步月班表、排班明細及版本紀錄。人力需求差異須另行覆核，只有選擇採用的項目才會一併套用。';};
-$('auto-month').onchange=()=>{invalidate();resetDemandReview();$('auto-reviewed').checked=false;$('auto-results').replaceChildren();$('auto-message').textContent='';refreshDemandLink();};$('auto-reviewed').onchange=invalidate;
+function changeAutoMonth(){invalidate();resetDemandReview();$('auto-reviewed').checked=false;$('auto-results').replaceChildren();$('auto-message').textContent='';refreshDemandLink();}
+$('auto-month').onchange=()=>{monthChosen=true;changeAutoMonth();};$('auto-reviewed').onchange=invalidate;
 function leaveRead(){if(busy!=='read')return;invalidate();setBusy(null);$('auto-results').replaceChildren();if(!review)$('auto-demand-message').textContent='';$('auto-message').textContent='已離開等待畫面；原檢查或搜尋可能仍在背景完成，不會寫入班表。可重新檢查或產生預覽。';}
-resetDemandReview();$('auto-launch').onclick=()=>dialog.showModal();$('auto-close').onclick=()=>{if(busy==='write')return;leaveRead();dialog.close();};dialog.addEventListener('cancel',e=>{e.preventDefault();$('auto-close').onclick();});
-google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';if(m.role==='管理者')refreshDemandLink();}).withFailureHandler(()=>{}).getCurrentMember();
+function initialAutoMonth(){
+ const rosterMonth=typeof scheduleData==='undefined'?null:scheduleData?.month;
+ if(typeof rosterMonth==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(rosterMonth))return rosterMonth;
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',calendar:'gregory',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+ return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
+}
+resetDemandReview();$('auto-launch').onclick=()=>{if(!monthChosen){const month=initialAutoMonth();if($('auto-month').value!==month){$('auto-month').value=month;changeAutoMonth();}}dialog.showModal();};$('auto-close').onclick=()=>{if(busy==='write')return;leaveRead();dialog.close();};dialog.addEventListener('cancel',e=>{e.preventDefault();$('auto-close').onclick();});
+google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';}).withFailureHandler(()=>{}).getCurrentMember();
 })();
 </script>

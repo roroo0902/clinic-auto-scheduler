@@ -7,10 +7,10 @@ function env(){
  const nodes=new Map(),calls=[];
  const element=()=>({value:'',checked:false,hidden:false,disabled:false,textContent:'',children:[],append(...v){this.children.push(...v);},prepend(){},replaceChildren(){this.children=[];},removeAttribute(k){delete this[k];},addEventListener(){},querySelectorAll(){return [];},showModal(){},close(){},dataset:{}});
  const get=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
- get('auto-month').value='2026-11';get('auto-mode').value='production';
+ get('auto-month').value='';get('auto-mode').value='production';
  const run={withSuccessHandler(success){return {withFailureHandler(failure){return new Proxy({}, {get:(_,method)=>(input)=>calls.push({method,input,success,failure})});}};}};
- vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],{document:{getElementById:get,createElement:element},google:{script:{run}}});
- calls.shift().success({role:'管理者'});return {get,calls};
+ vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],{document:{getElementById:get,createElement:element},google:{script:{run}},scheduleData:{month:'2026-11'}});
+ calls.shift().success({role:'管理者'});get('auto-launch').onclick();return {get,calls};
 }
 test('UI resolves selected month instead of fixed November gid',()=>{const {get,calls}=env();assert.equal(calls[0].method,'getAutoDemandSheetLink');get('auto-month').value='2026-12';get('auto-month').onchange();const req=calls.at(-1);assert.equal(req.input.month,'2026-12');req.success({url:'https://docs.google.com/spreadsheets/d/test/edit#gid=12'});assert.equal(get('auto-fill').hidden,false);assert.match(get('auto-fill').textContent,/2026-12/);assert.match(get('auto-fill').href,/gid=12$/);});
 test('UI late responses cannot restore wrong-month link',()=>{const {get,calls}=env();const old=calls[0];get('auto-month').value='2027-01';get('auto-month').onchange();calls.at(-1).success({url:'january'});old.success({url:'november'});assert.equal(get('auto-fill').href,'january');});

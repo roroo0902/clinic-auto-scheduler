@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const html=fs.readFileSync(new URL('../gas/AutoSchedule.html',import.meta.url),'utf8');
 const js=html.match(/<script>([\s\S]+)<\/script>/)[1];
-function fixture(){
+function fixture({rosterMonth='2026-11',now='2026-11-20T00:00:00Z'}={}){
  const all=new Map(),calls=[];
  function element(){
   const events={};
@@ -18,10 +18,11 @@ function fixture(){
   };
  }
  const e=id=>{if(!all.has(id))all.set(id,element());return all.get(id);};
- e('auto-month').value='2026-11';e('auto-mode').value='production';e('auto-publish').disabled=true;
+ e('auto-month').value='';e('auto-mode').value='production';e('auto-publish').disabled=true;
  function rpc(ok,err){const run={withSuccessHandler:f=>rpc(f,err),withFailureHandler:f=>rpc(ok,f)};for(const method of ['getCurrentMember','getAutoDemandSheetLink','previewAutoSchedule','publishAutoSchedule','getAutoDemandReview'])run[method]=args=>calls.push({method,args,ok,err});return run;}
- vm.runInNewContext(js,{document:{getElementById:e,createElement:element},google:{script:{run:rpc()}}});
- return {e,calls,dialog:e('auto-schedule'),last:()=>calls.at(-1),click(id){if(!e(id).disabled)e(id).onclick();},texts(id){const read=n=>[n.textContent,...n.children.flatMap(read)];return read(e(id)).filter(Boolean).join(' ');}};
+ const ctx={document:{getElementById:e,createElement:element},google:{script:{run:rpc()}},scheduleData:rosterMonth===null?null:{month:rosterMonth},Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}}};
+ vm.runInNewContext(js,ctx);
+ return {e,calls,ctx,dialog:e('auto-schedule'),last:()=>calls.at(-1),click(id){if(!e(id).disabled)e(id).onclick();},texts(id){const read=n=>[n.textContent,...n.children.flatMap(read)];return read(e(id)).filter(Boolean).join(' ');}};
 }
 const checked={status:'CHECKED',mode:'production'};
 const ready={status:'READY',mode:'production',plan:{TEST01:{'2026-11-01':'A'}},validation:{stats:[{id:'TEST01',name:'QA',hours:4,workDays:1,hourDifference:0}]},token:'valid-token',employeeCount:1,dayCount:1};
@@ -78,4 +79,49 @@ test('the generated portal carries the exact current auto-scheduling script',()=
  assert.ok(portal.includes(html));
  assert.match(portal,/班表查閱與工時統計 · 管理者可預覽自動排班/);
  assert.doesNotMatch(portal,/自動排班尚未啟用/);
+});
+
+test('first actual launch prefers already rendered roster month and does not prefetch November',()=>{
+ const f=fixture({rosterMonth:'2026-12'});
+ f.last().ok({role:'管理者'});assert.equal(f.calls.filter(c=>c.method==='getAutoDemandSheetLink').length,0);
+ f.click('auto-launch');assert.equal(f.e('auto-month').value,'2026-12');
+ assert.equal(f.last().method,'getAutoDemandSheetLink');assert.equal(f.last().args.month,'2026-12');
+ f.click('auto-check');assert.equal(f.last().args.month,'2026-12');
+});
+
+test('when no valid roster is loaded, Taipei month changes at Taiwan midnight and year boundary',()=>{
+ for(const [now,expected] of [['2026-11-30T15:59:59Z','2026-11'],['2026-11-30T16:00:00Z','2026-12'],['2026-12-31T15:59:59Z','2026-12'],['2026-12-31T16:00:00Z','2027-01']]){
+  for(const rosterMonth of [null,'2026-13']){
+   const f=fixture({rosterMonth,now});f.e('schedule-month').value='2026-11';f.click('auto-launch');
+   assert.equal(f.e('auto-month').value,expected);assert.equal(f.last().args.month,expected);
+  }
+ }
+});
+
+test('reopen and mode changes preserve manual month and explicitly cleared value',()=>{
+ const f=fixture({rosterMonth:'2026-12'});f.click('auto-launch');
+ f.e('auto-month').value='2027-02';f.e('auto-month').onchange();
+ const older=f.last();f.click('auto-close');f.ctx.scheduleData={month:'2027-05'};
+ f.click('auto-launch');assert.equal(f.e('auto-month').value,'2027-02');assert.equal(f.last(),older);
+ f.e('auto-month').value='';f.e('auto-month').onchange();f.click('auto-close');
+ f.e('auto-mode').value='acceptance';f.e('auto-mode').onchange();
+ f.click('auto-launch');older.ok({month:'2027-02',url:'https://example.invalid/stale'});
+ assert.equal(f.e('auto-month').value,'');assert.equal(f.e('auto-fill').hidden,true);assert.equal(f.e('auto-fill').href,undefined);
+});
+
+test('reopen follows a newly loaded roster month until explicitly chosen; previous approval is discarded',()=>{
+ const f=fixture({rosterMonth:'2026-11'});f.click('auto-launch');const oldLink=f.last();
+ f.click('auto-demand-read');f.last().ok(review());f.click('auto-demand-baseline');
+ f.e('auto-reviewed').checked=true;f.click('auto-preview');f.last().ok(ready);
+ f.e('auto-confirm').checked=true;f.e('auto-confirm').onchange();
+ assert.equal(f.e('auto-publish').disabled,false);
+ f.click('auto-close');f.ctx.scheduleData={month:'2026-12'};f.click('auto-launch');
+ assert.equal(f.e('auto-month').value,'2026-12');const newLink=f.last();
+ assert.equal(newLink.method,'getAutoDemandSheetLink');assert.equal(newLink.args.month,'2026-12');
+ oldLink.ok({url:'https://example.invalid/stale'});assert.equal(f.e('auto-fill').hidden,true);
+ assert.equal(f.e('auto-reviewed').checked,false);assert.equal(f.e('auto-confirm').checked,false);
+ assert.equal(f.e('auto-confirm-area').hidden,true);assert.equal(f.e('auto-demand-actions').hidden,true);
+ assert.equal(f.e('auto-publish').disabled,true);assert.equal(f.e('auto-results').children.length,0);
+ f.click('auto-check');assert.equal(f.last().args.month,'2026-12');
+ assert.equal('demandReview' in f.last().args,false);
 });
