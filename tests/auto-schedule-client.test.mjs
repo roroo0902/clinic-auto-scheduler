@@ -4,12 +4,14 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 
 const html=fs.readFileSync(new URL('../gas/AutoSchedule.html',import.meta.url),'utf8');
+const roster=fs.readFileSync(new URL('../gas/Schedule.html',import.meta.url),'utf8').match(/<script>([\s\S]+)<\/script>/)[1];
 const js=html.match(/<script>([\s\S]+)<\/script>/)[1];
-function fixture({rosterMonth='2026-11',now='2026-11-20T00:00:00Z'}={}){
+function fixture({rosterMonth='2026-11',now='2026-11-20T00:00:00Z',withRoster=false}={}){
  const all=new Map(),calls=[];
  function element(){
   const events={};
   return {children:[],dataset:{},disabled:false,checked:false,open:false,textContent:'',
+   setAttribute(){},scrollTo({top}){this.scrollTop=top;},
    append(...n){this.children.push(...n);},prepend(...n){this.children.unshift(...n);},
    replaceChildren(...n){this.children=n;},removeAttribute(k){delete this[k];},
    addEventListener(k,f){events[k]=f;},showModal(){this.open=true;},close(){this.open=false;},
@@ -18,9 +20,11 @@ function fixture({rosterMonth='2026-11',now='2026-11-20T00:00:00Z'}={}){
   };
  }
  const e=id=>{if(!all.has(id))all.set(id,element());return all.get(id);};
+ e('schedule-month').value='2026-11';e('schedule-dialog').querySelector=()=>e('schedule-close');
  e('auto-month').value='';e('auto-mode').value='production';e('auto-publish').disabled=true;
- function rpc(ok,err){const run={withSuccessHandler:f=>rpc(f,err),withFailureHandler:f=>rpc(ok,f)};for(const method of ['getCurrentMember','getAutoDemandSheetLink','previewAutoSchedule','publishAutoSchedule','getAutoDemandReview'])run[method]=args=>calls.push({method,args,ok,err});return run;}
- const ctx={document:{getElementById:e,createElement:element},google:{script:{run:rpc()}},scheduleData:rosterMonth===null?null:{month:rosterMonth},Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}}};
+ function rpc(ok,err){const run={withSuccessHandler:f=>rpc(f,err),withFailureHandler:f=>rpc(ok,f)};for(const method of ['getCurrentMember','getSchedule','getAutoDemandSheetLink','previewAutoSchedule','publishAutoSchedule','getAutoDemandReview'])run[method]=args=>calls.push({method,args,ok,err});return run;}
+ const ctx={document:{getElementById:e,createElement:element,querySelectorAll:()=>[]},google:{script:{run:rpc()}},scheduleData:rosterMonth===null?null:{month:rosterMonth},Date:class extends Date{constructor(...args){super(...(args.length?args:[now]));}}};
+ if(withRoster)vm.runInNewContext(roster,ctx);
  vm.runInNewContext(js,ctx);
  return {e,calls,ctx,dialog:e('auto-schedule'),last:()=>calls.at(-1),click(id){if(!e(id).disabled)e(id).onclick();},texts(id){const read=n=>[n.textContent,...n.children.flatMap(read)];return read(e(id)).filter(Boolean).join(' ');}};
 }
@@ -124,4 +128,48 @@ test('reopen follows a newly loaded roster month until explicitly chosen; previo
  assert.equal(f.e('auto-publish').disabled,true);assert.equal(f.e('auto-results').children.length,0);
  f.click('auto-check');assert.equal(f.last().args.month,'2026-12');
  assert.equal('demandReview' in f.last().args,false);
+});
+
+test('explicit roster Apply survives pending Close; ignored late reply cannot restore the old month',async()=>{
+ const f=fixture({withRoster:true});
+ f.click('schedule-month-trigger');f.e('month-wheel').onkeydown({key:'End',preventDefault(){}});
+ f.click('month-picker-apply');const pending=f.last();
+ assert.equal(pending.method,'getSchedule');assert.equal(pending.args.month,'2026-12');
+ f.click('schedule-close');f.click('auto-launch');f.click('auto-check');
+ assert.equal(f.e('auto-month').value,'2026-12');assert.equal(f.last().args.month,'2026-12');
+ pending.ok({month:'2026-11'});await Promise.resolve();
+ f.click('auto-close');f.click('auto-launch');assert.equal(f.e('auto-month').value,'2026-12');
+ assert.ok(!f.calls.some(c=>c.method==='publishAutoSchedule'));
+});
+
+test('Cancel and unopened roster do not promote wheel selection or stale hidden default',()=>{
+ const f=fixture({withRoster:true,now:'2027-01-03T00:00:00Z'});
+ f.click('schedule-month-trigger');f.e('month-wheel').onkeydown({key:'End',preventDefault(){}});
+ f.click('month-picker-cancel');f.click('schedule-close');f.click('auto-launch');
+ assert.equal(f.e('schedule-month').value,'2026-11');
+ assert.equal(f.e('auto-month').value,'2027-01');
+ assert.ok(!f.calls.some(c=>c.method==='getSchedule'));
+});
+
+test('explicit applied month wins over old loaded roster; manual empty Auto remains untouched',()=>{
+ const f=fixture({rosterMonth:'2026-11'});f.ctx.scheduleAppliedMonth='2026-12';f.click('auto-launch');
+ assert.equal(f.e('auto-month').value,'2026-12');f.e('auto-month').value='';f.e('auto-month').onchange();
+ f.click('auto-close');f.ctx.scheduleAppliedMonth='2027-01';f.click('auto-launch');
+ assert.equal(f.e('auto-month').value,'');
+});
+
+test('rapid November to December to January preserves the latest Apply when newer read fails and both earlier replies arrive', async()=>{
+ const f=fixture({withRoster:true});
+ const move=(id,key)=>f.e(id).onkeydown({key,preventDefault(){}});
+ f.click('schedule-personal');const a=f.last();assert.equal(a.args.month,'2026-11');
+ f.click('schedule-month-trigger');move('month-wheel','End');f.click('month-picker-apply');
+ const b=f.last();assert.equal(b.args.month,'2026-12');
+ f.click('schedule-month-trigger');move('year-wheel','ArrowDown');move('month-wheel','Home');f.click('month-picker-apply');
+ const c=f.last();assert.equal(c.args.month,'2027-01');
+ c.err(Error('still not loaded'));await Promise.resolve();assert.match(f.e('schedule-status').textContent,/still not loaded/);
+ b.ok({month:'2026-12'});a.err(Error('stale November'));await Promise.resolve();
+ assert.match(f.e('schedule-status').textContent,/still not loaded/);
+ f.click('schedule-close');f.click('auto-launch');f.click('auto-check');
+ assert.equal(f.e('auto-month').value,'2027-01');assert.equal(f.last().args.month,'2027-01');
+ assert.ok(!f.calls.some(x=>x.method==='publishAutoSchedule'));
 });

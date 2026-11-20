@@ -94,8 +94,8 @@ function changeAutoMonth(){invalidate();resetDemandReview();$('auto-reviewed').c
 $('auto-month').onchange=()=>{monthChosen=true;changeAutoMonth();};$('auto-reviewed').onchange=invalidate;
 function leaveRead(){if(busy!=='read')return;invalidate();setBusy(null);$('auto-results').replaceChildren();if(!review)$('auto-demand-message').textContent='';$('auto-message').textContent='已離開等待畫面；原檢查或搜尋可能仍在背景完成，不會寫入班表。可重新檢查或產生預覽。';}
 function initialAutoMonth(){
- const rosterMonth=typeof scheduleData==='undefined'?null:scheduleData?.month;
- if(typeof rosterMonth==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(rosterMonth))return rosterMonth;
+ const applied=typeof scheduleAppliedMonth==='undefined'?null:scheduleAppliedMonth,loaded=typeof scheduleData==='undefined'?null:scheduleData?.month;
+ for(const month of [applied,loaded])if(typeof month==='string'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return month;
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Taipei',calendar:'gregory',year:'numeric',month:'2-digit'}).formatToParts(new Date());
  return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
