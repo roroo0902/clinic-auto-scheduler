@@ -61,7 +61,7 @@ function sheetLink(label,name){
 const content={
  new:{title:'召喚醫者',description:'締結新的輪值契約。在員工名冊填寫姓名、任職類型與工時條件；資格與可排班別可接著設定。',links:[['新增／編輯員工名冊','Employees'],['資格與技能','EmployeeQualifications'],['允許班別','AllowedShifts']]},
  roles:{title:'英靈編成',description:'為每位醫者設定出勤條件。在本站選擇條件，核對變更後再上傳。',links:[['工時與出勤限制','Employees'],['允許班別','AllowedShifts'],['偏好班別','EmployeePreferences'],['班次鎖定','AssignmentLocks'],['指定日期可排時段','EmployeeAvailability'],['每週固定可排時段','RecurringAvailability'],['強制班別','ForcedShifts'],['組合優先設定','組合優先設定'],['班別優先人員','班別優先人員'],['請假紀錄','LeaveRequests'],['個人假日設定','個人假日設定']]},
- battle:{title:'啟動命運之輪',description:'前往排班控制設定本次任務，確認每日需求與人數上限，再開啟當月班表。此網站提供試算表入口，尚未執行自動排班。',links:[['開啟排班控制','排班控制'],['每日需求與 MaxStaff','DailyShiftDemands'],['開啟當月班表','Schedule_W1初版'],['統計與檢查規則','統計與檢查規則']]},
+ battle:{title:'啟動命運之輪',description:'前往排班控制設定本次任務，確認每日需求與人數上限，再開啟當月班表。管理者可在 Google 登入後使用「自動排班」檢查、預覽及確認同步；工時統計可在整體班表查閱。',links:[['開啟排班控制','排班控制'],['每日需求與 MaxStaff','DailyShiftDemands'],['開啟當月班表','Schedule_W1初版'],['統計與檢查規則','統計與檢查規則']]},
  other:{title:'禁忌藏書閣',description:'查閱排班參數、班別與規則。修改實際資料時，由 Google 管理存取權限。',links:[['參數設定索引','參數設定索引'],['系統參數','SystemConfig'],['早午晚班時間','ShiftDefinitions'],['日曆與休診日','CalendarDates'],['政策設定','LegalPolicy'],['使用說明','使用說明']]}
 };
 function renderPanel(name){

@@ -30,21 +30,76 @@ function autoSnapshot_(month,mode){
  const control=raw['排班控制']||[],week=control.slice(1).filter(r=>r[0]==='WEEK_START_DAY');
  const existing={};for(const row of(raw['月班表']||[]).slice(1))if(/^\d{4}-\d{2}$/.test(row[0])&&row[1]){if(row[0]===month&&!tables.Employees.some(e=>e.employeeId===row[1]&&e.active===true)&&row.slice(3,34).some(Boolean))issues.push({sheet:'月班表',message:'本月有未啟用員工的既有班次，請先確認處置，避免人數重複計算。'});if(!existing[row[1]])existing[row[1]]={};for(let i=0;i<new Date(Date.UTC(+row[0].slice(0,4),+row[0].slice(5),0)).getUTCDate();i++){const d=row[0]+'-'+String(i+1).padStart(2,'0');if(Object.prototype.hasOwnProperty.call(existing[row[1]],d))issues.push({sheet:'月班表',message:'同月員工班表重複。'});existing[row[1]][d]=row[i+3]||'';}}
  if(AUTO_MONTH_HEADER_.some((h,i)=>String(raw['月班表']?.[0]?.[i])!==h))issues.push({sheet:'月班表',message:'月班表欄位不符。'});
- // The fill-in sheet is a proposed input overlay, committed only with an approved plan.
- const fill=raw['人力需求待填_'+month],demandUpdates=[];
- if(fill)for(const row of fill.slice(4)){
-  if(!String(row[0]||'').startsWith(month)||!row[9])continue;const matches=tables.DailyShiftDemands.filter(r=>r.demandId===row[9]&&r.date===row[0]);if(matches.length!==1){issues.push({sheet:'人力需求待填_'+month,message:'需求來源代碼不符或重複。'});continue;}
-  const r=matches[0];for(const[k,j]of [['requiredHeadcount',3],['MaxStaff',4],['idealHeadcount',5],['isClosed',6]])if(!autoBlank_(row[j])&&row[j]!==r[k]){demandUpdates.push({row:r._row,key:k,value:row[j]});r[k]=row[j];}
+ const fill=raw['人力需求待填_'+month],demandCandidates=autoDemandCandidates_(month,fill,tables.DailyShiftDemands),demandUpdates=[];
+ return {map,raw,fingerprint,demandCandidates,demandUpdates,input:{month,tables,existing,weekStart:week.length===1?week[0][2]:'',issues}};
+}
+
+// Optional fill-in sheet is advisory. Only a separate administrator review may apply it.
+const AUTO_DEMAND_REVIEW_MS_=20*60*1000;
+const AUTO_DEMAND_HEADER_={0:'日期',2:'班別與時間',3:'最低人數',4:'最高人數',5:'理想人數',6:'此班休診',8:'核對狀態',9:'原需求代碼'};
+const AUTO_DEMAND_COLUMNS_=[['requiredHeadcount',3,'min'],['MaxStaff',4,'max'],['idealHeadcount',5,'ideal'],['isClosed',6,'closed']];
+function autoDemandCandidates_(month,fill,official){
+ if(!fill?.length)return [];
+ if(Object.entries(AUTO_DEMAND_HEADER_).some(([i,h])=>fill[3]?.[i]!==h))return [{id:'header',row:4,date:'',shift:'',official:null,proposed:null,eligible:false,reason:'待填表欄位順序或名稱不符；只能保留正式主表。'}];
+ const counts=new Map(),out=[];
+ for(const row of fill.slice(4)){const key=JSON.stringify([row[0],row[9]]);if(row[0]&&row[9])counts.set(key,(counts.get(key)||0)+1);}
+ const count=v=>Number.isInteger(v)&&v>=0;
+ fill.slice(4).forEach((row,i)=>{
+  if([0,2,3,4,5,9].every(j=>autoBlank_(row[j]))&&(autoBlank_(row[6])||row[6]===false))return;
+  const result={id:'r'+(i+5),row:i+5,date:autoDate_(row[0])?row[0]:'',shift:typeof row[2]==='string'?(/^([ABC])(?:\s|$)/.exec(row[2].trim())?.[1]||''):'',official:null,proposed:null,eligible:false,reason:''};
+  const reject=reason=>{result.reason=reason;out.push(result);};
+  if(!result.date||result.date.slice(0,7)!==month||!result.shift||typeof row[9]!=='string'||!row[9])return reject('日期、班別或原需求代碼無法核對。');
+  const byId=official.filter(r=>r.demandId===row[9]),bySlot=official.filter(r=>r.date===result.date&&r.shiftId===result.shift);
+  if(byId.length!==1||bySlot.length!==1||byId[0]!==bySlot[0])return reject('原需求代碼、日期、班別不一致，或正式需求重複。');
+  const target=byId[0],changes=[];
+  result.official={};result.proposed={};
+  for(const [key,j,label] of AUTO_DEMAND_COLUMNS_){
+   const old=target[key],value=autoBlank_(row[j])?old:row[j];
+   result.official[label]=autoBlank_(old)?null:old;result.proposed[label]=autoBlank_(value)?null:value;
+   if(value!==old)changes.push({row:target._row,key,value});
+  }
+  if((counts.get(JSON.stringify([row[0],row[9]]))||0)>1)return reject('待填表有重複的原需求代碼及日期。');
+  if(!changes.length)return;
+  const {min,max,ideal,closed}=result.proposed,hasNumbers=[3,4,5].some(j=>!autoBlank_(row[j]));
+  if((hasNumbers&&(!count(row[3])||!count(row[4])))||!count(min)||!count(max)||ideal!==null&&!count(ideal)||typeof closed!=='boolean')return reject('最低及最高需明確填非負整數，休診須為勾選值。');
+  if(min>max||ideal!==null&&(ideal<min||ideal>max)||closed&&(min!==0||max!==0||ideal!==null&&ideal!==0))return reject('最低、理想、最高或休診人數矛盾。');
+  result.eligible=true;out.push({...result,changes,target});
+ });
+ return out;
+}
+function getAutoDemandReview(input){
+ const actor=autoAdmin_(),month=String(input?.month||''),snap=autoSnapshot_(month,'production'),token=Utilities.getUuid(),expiresAt=Date.now()+AUTO_DEMAND_REVIEW_MS_;
+ CacheService.getUserCache().put('auto-demand:'+token,JSON.stringify({month,fingerprint:snap.fingerprint,actor:actor.email,expiresAt}),AUTO_DEMAND_REVIEW_MS_/1000);
+ return {month,token,fingerprint:snap.fingerprint,expiresInMinutes:AUTO_DEMAND_REVIEW_MS_/60000,requiresReview:snap.demandCandidates.length>0,rows:snap.demandCandidates.map(({changes,target,...row})=>row)};
+}
+function autoDemandDecision_(snap,month,actor,review){
+ if(!review){
+  if(snap.demandCandidates.length)snap.input.issues.push({sheet:'人力需求待填_'+month,message:'有 '+snap.demandCandidates.length+' 筆差異或異常；請先獨立覆核，選擇保留正式主表或只採用核准列。'});
+  return null;
  }
- return {map,raw,fingerprint,demandUpdates,input:{month,tables,existing,weekStart:week.length===1?week[0][2]:'',issues}};
+ if(typeof review.token!=='string'||!/^[-\w]{20,80}$/.test(review.token))throw Error('待填人力覆核無效，請重新讀取差異。');
+ const json=CacheService.getUserCache().get('auto-demand:'+review.token),proof=json?JSON.parse(json):null;
+ if(!proof||proof.expiresAt<=Date.now()||proof.actor!==actor.email||proof.month!==month||proof.fingerprint!==snap.fingerprint||review.fingerprint!==snap.fingerprint)throw Error('待填人力覆核已到期或資料已變更，請重新讀取差異。');
+ return autoApplyDemandDecision_(snap,{action:review.action,selectedIds:review.selectedIds,expiresAt:proof.expiresAt});
+}
+function autoApplyDemandDecision_(snap,decision){
+ if(!decision){if(snap.demandCandidates.length)throw Error('尚未覆核待填人力差異，請重新預覽。');return null;}
+ if(!Number.isFinite(decision.expiresAt)||decision.expiresAt<=Date.now())throw Error('待填人力覆核已到期，請重新讀取差異。');
+ const {action,selectedIds}=decision;
+ if(!['baseline','apply'].includes(action)||!Array.isArray(selectedIds)||selectedIds.length>snap.demandCandidates.length||new Set(selectedIds).size!==selectedIds.length||(action==='baseline'?selectedIds.length!==0:selectedIds.length===0))throw Error('請明確選擇保留正式主表，或選取要採用的差異。');
+ const selected=selectedIds.map(id=>snap.demandCandidates.find(row=>row.id===id&&row.eligible));
+ if(selected.some(row=>!row))throw Error('選取中有不能採用的待填列，請重新核對班別及人數。');
+ for(const proposal of selected)for(const change of proposal.changes){snap.demandUpdates.push(change);proposal.target[change.key]=change.value;}
+ return {action,selectedIds,expiresAt:decision.expiresAt};
 }
 function previewAutoSchedule(input){
- autoAdmin_();input=input||{};const month=String(input.month||''),mode=input.mode||'production',snap=autoSnapshot_(month,mode),p=autoPrepare_(snap.input);
+ const actor=autoAdmin_();input=input||{};const month=String(input.month||''),mode=input.mode||'production',snap=autoSnapshot_(month,mode);
+ const demandDecision=mode==='production'?autoDemandDecision_(snap,month,actor,input.demandReview):null,p=autoPrepare_(snap.input);
  const result=input.checkOnly?{status:p.issues.length?'NEEDS_INPUT':'CHECKED',issues:p.issues,warnings:p.warnings}:autoSearch_(p,{seed:Math.floor(Math.random()*1000000),budgetMs:15000});
  result.month=month;result.mode=mode;result.employeeCount=p.employees?.length||0;result.dayCount=p.dates?.length||0;result.engine=AUTO_ENGINE_VERSION_;
  if(result.status==='READY'){
   if(input.reviewedInputs!==true)throw Error('請確認已覆核輸入、空白選填規則及排班結果。');
-  const token=Utilities.getUuid(),draft={month,mode,plan:result.plan,fingerprint:snap.fingerprint,engine:AUTO_ENGINE_VERSION_};const json=JSON.stringify(draft);
+  const token=Utilities.getUuid(),draft={month,mode,plan:result.plan,fingerprint:snap.fingerprint,engine:AUTO_ENGINE_VERSION_,...(mode==='production'?{demandReviewVersion:1,demandDecision,demandReviewedBy:actor.email}:{})};const json=JSON.stringify(draft);
   if(Utilities.newBlob(json).getBytes().length>95000)throw Error('預覽資料超過安全保存大小。');
   CacheService.getUserCache().put('auto:'+token,json,1200);result.token=token;result.expiresInMinutes=20;
  }
@@ -58,6 +113,7 @@ function publishAutoSchedule(input){
   autoAdmin_();const cache=CacheService.getUserCache(),key='auto:'+input.token,json=cache.get(key);if(!json)throw Error('預覽已到期或已送出；請重新讀取，勿重複送出。');
   const draft=JSON.parse(json),snap=autoSnapshot_(draft.month,draft.mode);
   if(draft.engine!==AUTO_ENGINE_VERSION_||snap.fingerprint!==draft.fingerprint)throw Error('Sheet 已變更，舊預覽不能覆蓋新資料。請重新產生排班。');
+  if(draft.mode==='production'){if(draft.demandReviewVersion!==1||draft.demandReviewedBy!==actor.email)throw Error('正式人力覆核已更新或操作者不同，請重新預覽。');autoApplyDemandDecision_(snap,draft.demandDecision);}
   const p=autoPrepare_(snap.input),v=autoValidatePlan_(p,draft.plan);if(!v.ok)throw Error('發布前驗證未通過：'+v.errors.slice(0,5).join('；'));
   const test=draft.mode==='acceptance',name=test?'自動排班驗收':'月班表',sheet=snap.map[name],raw=snap.raw[name]||[],requests=[],targets=[],additionalReadback=[],version='AUTO-'+input.token,time=new Date().toISOString();
   const id=sheet?sheet.sheetId:Math.floor(Math.random()*1000000000)+1000000000;
@@ -77,6 +133,7 @@ function publishAutoSchedule(input){
    const activeRows=snap.raw['排班控制'].map((r,i)=>({r,i})).filter(x=>x.r[0]==='ACTIVE_SCHEDULE_VERSION');if(activeRows.length!==1)throw Error('目前班表版本控制欄位缺漏或重複。');const ar=activeRows[0].i;requests.push({updateCells:{start:{sheetId:snap.map['排班控制'].sheetId,rowIndex:ar,columnIndex:2},rows:[{values:[cellValue(version)]}],fields:'userEnteredValue'}});additionalReadback.push({range:"'排班控制'!C"+(ar+1)+':C'+(ar+1),values:[[version]]});
   }
   if(autoSnapshot_(draft.month,draft.mode).fingerprint!==snap.fingerprint)throw Error('送出前資料已變更，請重新預覽。');
+  if(draft.mode==='production'&&draft.demandDecision&&draft.demandDecision.expiresAt<=Date.now())throw Error('待填人力覆核已到期，請重新讀取差異。');
   cache.remove(key); // Never replay a write after an uncertain network outcome.
   Sheets.Spreadsheets.batchUpdate({requests},ACCESS_SHEET_ID);
   const readback=readSheets_(()=>Sheets.Spreadsheets.Values.batchGet(ACCESS_SHEET_ID,{ranges:targets.map(t=>"'"+name+"'!A"+(t.row+1)+':AJ'+(t.row+1)),valueRenderOption:'UNFORMATTED_VALUE'}));

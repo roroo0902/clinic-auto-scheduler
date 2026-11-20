@@ -30,13 +30,16 @@ test('atomic publication stores all 17 rows and verifies values',()=>{const toke
 test('stale preview refuses writes and normal user has no access',()=>{const token=savedDraft();store['自動排班驗收'].rows[1][35]='changed';assert.throws(()=>ctx.publishAutoSchedule({token,confirmed:true}),/Sheet 已變更/);assert.equal(writes,1);role='一般使用者';assert.throws(()=>ctx.previewAutoSchedule({month:'2030-11',mode:'acceptance',checkOnly:true}),/管理者/);role='管理者';});
 test('readback mismatch never reports success or retries write',()=>{const token=savedDraft();forceMismatch=true;assert.throws(()=>ctx.publishAutoSchedule({token,confirmed:true}),/核對未完成/);assert.equal(writes,2);assert(!cache.has('auto:'+token));forceMismatch=false;});
 test('monthly formula protection blocks replacement',()=>{const token=savedDraft(),original=ctx.Sheets.Spreadsheets.Values.get;ctx.Sheets.Spreadsheets.Values.get=()=>({values:[[],['=FORMULA()']]});assert.throws(()=>ctx.publishAutoSchedule({token,confirmed:true}),/包含公式/);assert.equal(writes,2);ctx.Sheets.Spreadsheets.Values.get=original;});
+const demandReviewHeader=()=>['日期','星期','班別與時間','最低人數','最高人數','理想人數','此班休診','補充說明','核對狀態','原需求代碼'];
 test('production commit synchronizes month, assignments, version, audit and approved demand overlay',()=>{
  store={};writes=0;const contract=vm.runInContext('({fields:AUTO_FIELDS_,input:AUTO_INPUTS_,output:AUTO_OUTPUTS_,aliases:CHINESE_SHEET_TITLES_,custom:CHINESE_FORM_COLUMNS_,header:AUTO_MONTH_HEADER_})',ctx);let id=100;
  const f=fixture();f.tables.DailyShiftDemands.forEach((r,i)=>r.demandId='D'+i);f.tables.ForcedShifts.forEach((r,i)=>r.forcedShiftId='F'+i);
  for(const n of [...contract.input,...contract.output]){const fields=contract.custom[n]?contract.custom[n].split(','):contract.fields[n];store[contract.aliases[n]||n]={id:id++,rows:[copy(fields),...(f.tables[n]||[]).map(r=>fields.map(k=>r[k]??''))]};}
  store['排班控制']={id:id++,rows:[['key','name','value'],['WEEK_START_DAY','起始',1],['ACTIVE_SCHEDULE_VERSION','目前','']]};store['系統參數']={id:id++,rows:[['key','value']]};store['月班表']={id:id++,rows:[copy(contract.header)]};
- store['人力需求待填_2030-11']={id:id++,rows:[[],[],[],[],['2030-11-01','','A',2,4,2,false,'','','D0']]};
- const snap=ctx.autoSnapshot_('2030-11','production'),prepared=ctx.autoPrepare_(snap.input);assert.equal(prepared.issues.length,0,JSON.stringify(prepared.issues));const token=crypto.randomUUID();cache.set('auto:'+token,JSON.stringify({month:'2030-11',mode:'production',plan:result.plan,fingerprint:snap.fingerprint,engine:'1.0.0'}));
+ store['人力需求待填_2030-11']={id:id++,rows:[[],[],[],demandReviewHeader(),['2030-11-01','','A 08:00–12:00',2,4,2,false,'','待確認','D0']]};
+ const snap=ctx.autoSnapshot_('2030-11','production');assert.equal(snap.demandUpdates.length,0);const review=ctx.getAutoDemandReview({month:'2030-11'});assert.equal(review.rows.length,1);const demandDecision=ctx.autoDemandDecision_(snap,'2030-11',ctx.requireMember_(),{token:review.token,fingerprint:review.fingerprint,action:'apply',selectedIds:['r5']});const prepared=ctx.autoPrepare_(snap.input);assert.equal(prepared.issues.length,0,JSON.stringify(prepared.issues));const token=crypto.randomUUID(),draft={month:'2030-11',mode:'production',plan:result.plan,fingerprint:snap.fingerprint,engine:'1.0.0',demandReviewVersion:1,demandDecision};
+ cache.set('auto:'+token,JSON.stringify({...draft,demandReviewedBy:'another-admin@example.invalid'}));assert.throws(()=>ctx.publishAutoSchedule({token,confirmed:true}),/操作者不同/);assert.equal(writes,0);
+ cache.set('auto:'+token,JSON.stringify({...draft,demandReviewedBy:ctx.requireMember_().email}));
  const r=ctx.publishAutoSchedule({token,confirmed:true});assert.equal(r.status,'VERIFIED');assert.equal(writes,1);assert.equal(store['月班表'].rows.length,18);assert.equal(store['班表版本紀錄'].rows.length,2);assert(store['班表排班明細'].rows.length>180);assert.equal(store['操作稽核紀錄'].rows.length,2);assert.equal(store['每日班別人力需求'].rows[1][4],4);assert.equal(store['排班控制'].rows[2][2],r.version);
 });
 
@@ -57,3 +60,44 @@ test('QA: leap February and year-boundary fixtures prepare with exact day counts
 test('QA: acceptance snapshot never reads or merges production people',()=>{resetAcceptance();store['員工資料']={id:1,rows:[['employeeId'],['REAL-PERSON-DO-NOT-USE']]};const s=ctx.autoSnapshot_('2030-11','acceptance');assert.equal(s.input.tables.Employees.length,17);assert(s.input.tables.Employees.every(e=>e.employeeId.startsWith('TEST')));assert.equal(s.raw['員工資料'],undefined);assert.equal(writes,0);});
 test('QA: demand link resolver returns exact existing month without writes',()=>{resetAcceptance();store['人力需求待填_2026-11']={id:11,rows:[]};store['人力需求待填_2026-12']={id:12,rows:[]};assert.match(ctx.getAutoDemandSheetLink({month:'2026-12'}).url,/#gid=12$/);assert.equal(ctx.getAutoDemandSheetLink({month:'2027-01'}).url,null);assert.equal(writes,0);});
 test('QA: demand link resolver rejects invalid months and unauthorized callers',()=>{resetAcceptance();assert.throws(()=>ctx.getAutoDemandSheetLink({month:'2026-13'}),/月份/);role='一般使用者';try{assert.throws(()=>ctx.getAutoDemandSheetLink({month:'2026-11'}),/管理者/);}finally{role='管理者';}assert.equal(writes,0);});
+
+test('demand overlay: 11/28 tentative reopening never replaces the official closure without explicit review',()=>{
+ const date='2026-11-28',month='2026-11',official=[{demandId:'DEM-'+date+'-A',date,shiftId:'A',requiredHeadcount:0,MaxStaff:0,idealHeadcount:0,isClosed:true,_row:27}];
+ const fill=[[],[],[],demandReviewHeader(),[date,'六','A 08:00–12:00',2,7,7,false,'','待確認','DEM-'+date+'-A']];
+ const candidates=ctx.autoDemandCandidates_(month,fill,official);
+ assert.equal(candidates[0].eligible,true);assert.equal(candidates[0].official.closed,true);assert.equal(candidates[0].proposed.closed,false);
+ const snap={demandCandidates:candidates,demandUpdates:[],input:{issues:[]}};
+ assert.equal(ctx.autoDemandDecision_(snap,month,ctx.requireMember_(),null),null);
+ assert.equal(snap.input.issues.length,1);assert.equal(snap.demandUpdates.length,0);assert.equal(official[0].isClosed,true);
+ ctx.autoApplyDemandDecision_(snap,{action:'baseline',selectedIds:[],expiresAt:Date.now()+60000});
+ assert.equal(snap.demandUpdates.length,0);assert.equal(official[0].isClosed,true);
+ ctx.autoApplyDemandDecision_(snap,{action:'apply',selectedIds:['r5'],expiresAt:Date.now()+60000});
+ assert.equal(snap.demandUpdates.length,4);assert.equal(official[0].isClosed,false);assert.equal(official[0].MaxStaff,7);
+});
+
+test('demand overlay: mismatched shift, duplicate IDs and invalid counts are ineligible; baseline still available',()=>{
+ const date='2026-11-28',month='2026-11',target={demandId:'AA',date,shiftId:'A',requiredHeadcount:2,MaxStaff:6,idealHeadcount:3,isClosed:false,_row:2};
+ const fill=(...rows)=>[[],[],[],demandReviewHeader(),...rows];
+ const row=[date,'','A 08:00–12:00',2,7,3,false,'','待確認','AA'];
+ for(const f of [fill([...row.slice(0,2),'B 14:30–18:30',...row.slice(3)]),fill(row,row),fill([date,'','A',2,7,3,true,'','','AA']),fill([date,'','A',2,7,8,false,'','','AA']),fill([date,'','A','','',5,false,'','','AA'])]){
+  const snap={demandCandidates:ctx.autoDemandCandidates_(month,f,[target]),demandUpdates:[]};
+  assert(snap.demandCandidates.length>0);assert(snap.demandCandidates.every(x=>!x.eligible));
+  assert.throws(()=>ctx.autoApplyDemandDecision_(snap,{action:'apply',selectedIds:['r5'],expiresAt:Date.now()+60000}),/不能採用/);
+  ctx.autoApplyDemandDecision_(snap,{action:'baseline',selectedIds:[],expiresAt:Date.now()+60000});
+  assert.equal(snap.demandUpdates.length,0);assert.equal(target.MaxStaff,6);
+ }
+});
+
+test('demand overlay: independent role, month, fingerprint, expiration and row list gates',()=>{
+ const month='2026-11',token=crypto.randomUUID(),fingerprint='fixture-digest',actor=ctx.requireMember_(),review={action:'baseline',selectedIds:[],token,fingerprint};
+ const snap={fingerprint,demandCandidates:[],demandUpdates:[]};
+ cache.set('auto-demand:'+token,JSON.stringify({month,fingerprint,actor:actor.email,expiresAt:Date.now()+60000}));
+ assert.equal(ctx.autoDemandDecision_(snap,month,actor,review).action,'baseline');
+ assert.throws(()=>ctx.autoDemandDecision_(snap,'2026-12',actor,review),/到期或資料已變更/);
+ assert.throws(()=>ctx.autoDemandDecision_({...snap,fingerprint:'changed'},month,actor,review),/到期或資料已變更/);
+ assert.throws(()=>ctx.autoDemandDecision_(snap,month,{email:'another@example.invalid'},review),/到期或資料已變更/);
+ assert.throws(()=>ctx.autoDemandDecision_(snap,month,actor,{...review,selectedIds:['r5']}),/明確選擇/);
+ cache.set('auto-demand:'+token,JSON.stringify({month,fingerprint,actor:actor.email,expiresAt:Date.now()-1}));
+ assert.throws(()=>ctx.autoDemandDecision_(snap,month,actor,review),/到期或資料已變更/);
+ const oldRole=role;role='一般使用者';try{assert.throws(()=>ctx.getAutoDemandReview({month}),/管理者/);}finally{role=oldRole;}
+});

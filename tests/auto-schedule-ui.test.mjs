@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const html=fs.readFileSync(new URL('../gas/AutoSchedule.html',import.meta.url),'utf8');
 function env(){
  const nodes=new Map(),calls=[];
- const element=()=>({value:'',checked:false,hidden:false,disabled:false,textContent:'',children:[],append(...v){this.children.push(...v);},prepend(){},replaceChildren(){this.children=[];},removeAttribute(k){delete this[k];},addEventListener(){},showModal(){},close(){},dataset:{}});
+ const element=()=>({value:'',checked:false,hidden:false,disabled:false,textContent:'',children:[],append(...v){this.children.push(...v);},prepend(){},replaceChildren(){this.children=[];},removeAttribute(k){delete this[k];},addEventListener(){},querySelectorAll(){return [];},showModal(){},close(){},dataset:{}});
  const get=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
  get('auto-month').value='2026-11';get('auto-mode').value='production';
  const run={withSuccessHandler(success){return {withFailureHandler(failure){return new Proxy({}, {get:(_,method)=>(input)=>calls.push({method,input,success,failure})});}};}};
