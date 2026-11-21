@@ -100,6 +100,29 @@ function initialAutoMonth(){
  return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
 resetDemandReview();$('auto-launch').onclick=()=>{if(!monthChosen){const month=initialAutoMonth();if($('auto-month').value!==month){$('auto-month').value=month;changeAutoMonth();}}dialog.showModal();};$('auto-close').onclick=()=>{if(busy==='write')return;leaveRead();dialog.close();};dialog.addEventListener('cancel',e=>{e.preventDefault();$('auto-close').onclick();});
+const wheelPanel = document.getElementById('panel');
+if (wheelPanel) {
+  const menuLaunch = document.createElement('button');
+  menuLaunch.type = 'button';
+  menuLaunch.textContent = '自動排班';
+  menuLaunch.addEventListener('click', () => {
+    $('auto-launch').click();
+    if (dialog.open) {
+      dialog.addEventListener('close', () => menuLaunch.focus(), {once:true});
+    }
+  });
+  function syncWheelLaunch() {
+    const inWheel = wheelPanel.open && wheelPanel.querySelector('h2')?.textContent.trim() === '啟動命運之輪';
+    if (inWheel && !$('auto-launch').hidden) {
+      if (menuLaunch.parentElement !== wheelPanel) wheelPanel.append(menuLaunch);
+    } else {
+      menuLaunch.remove();
+    }
+  }
+  new MutationObserver(syncWheelLaunch).observe(wheelPanel, {attributes:true,attributeFilter:['open'],childList:true,subtree:true,characterData:true});
+  new MutationObserver(syncWheelLaunch).observe($('auto-launch'), {attributes:true,attributeFilter:['hidden']});
+  syncWheelLaunch();
+}
 google.script.run.withSuccessHandler(m=>{$('auto-launch').hidden=m.role!=='管理者';}).withFailureHandler(()=>{}).getCurrentMember();
 })();
 </script>
